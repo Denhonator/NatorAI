@@ -64,3 +64,6 @@ Emotes and other special capitalization:
 The bot keeps track of special capitalization. Each time a word is typed differently than
 what the bot currently knows, it will unlearn an entry. In the end, the most common
 capitalization should be learned. These can manually be edited in "definitions.txt"
+
+Multiple memories:
+You can define a new folder for word data in folder.txt
