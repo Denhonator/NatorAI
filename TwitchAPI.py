@@ -2,9 +2,9 @@ import urllib.request
 import json
 import SettingsAndPreferences as settings
 
-user = "FairD"
+user = ""
 userid = 0
-myuser = "denhonator"
+myuser = ""
 myid = 0
 oauth = settings.findValue("APIOauth")
 clientid = settings.findValue("ClientID")
@@ -13,7 +13,7 @@ clientid = settings.findValue("ClientID")
 def getownid(myuser):
     channelIdUrl = "https://api.twitch.tv/kraken/users?login=denhonator"
     headers2={
-    'Client-ID': 'lxnmq2fya9fq511vh3d2dbcmasqgra',
+    'Client-ID': clientid,
     'Accept': 'application/vnd.twitchtv.v5+json',
     'Content-Type': 'application/json'
     }
