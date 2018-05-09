@@ -1,3 +1,4 @@
 Never stop at ,
 Remove characters like single " that don't belong
-Sub detection
+Rewrite word adding to fix incorrect last word entries
+Twitch API functionality
