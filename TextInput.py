@@ -57,7 +57,8 @@ def findWords(words):
             if not word.find('"',word.find('"'))>-1:
                 delete = True
         if not delete and word.lower()!=settings.findValue("call") and word.lower() not in settings.userlist("word ignore list.txt"):
-            final.append(word.lower())
+            if word[0]!="!":
+                final.append(word.lower())
             commonchar = 0
             searchloop = 0
             for c in word:
