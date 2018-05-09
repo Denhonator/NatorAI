@@ -99,7 +99,10 @@ class SubWatch(Thread):
                             reply+=api.subs()[0]+" "
                         else:
                             reply+= word+" "
-                    reply += speak.generateSentence(settings.findValue("SubFeed").strip().split())
+                    if settings.findValue("SubFeed")!="30":
+                        reply += speak.generateSentence(settings.findValue("SubFeed").strip().split())
+                    else:
+                        reply += speak.generateSentence([])
                     print("SUB REPLY: " + reply)
                     send_message(reply)
                 self.subs = self.subs2
@@ -127,7 +130,10 @@ class FollowWatch(Thread):
                         reply+=api.followers()[0]+" "
                     else:
                         reply+= word+" "
-                reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
+                if settings.findValue("FollowFeed")!="30":
+                    reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
+                else:
+                    reply += speak.generateSentence([])
                 print("FOLLOW REPLY: " + reply)
                 send_message(reply)
             self.followers = self.followers2
