@@ -19,7 +19,7 @@ def findValue(setting, value=None):
     entryFound = False
     
     for line in f.readlines():
-        (w, s) = line.split()
+        (w, s) = line.split(" ", 1)
         if w.lower().strip()==setting.lower().strip():
             entryFound = True
             if value:
@@ -27,7 +27,7 @@ def findValue(setting, value=None):
                 output += w+" "+s+"\n"
             else:
                 f.close()
-                return s
+                return s.strip()
         elif value:
             output += line.strip()+"\n"
     if not entryFound and value:
@@ -40,7 +40,7 @@ def findValue(setting, value=None):
         f.close()
     if not value:
         print("Add definition for "+setting+" in 'settings and commands.txt'")
-        print("Returning 30 instead")
+        print("Returning 30 instead (means false in enable-type settings)")
         return "30"
     return value
 

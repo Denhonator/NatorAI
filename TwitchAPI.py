@@ -21,7 +21,7 @@ def parseInfo(url, lookfor):
         try:
             cursor = data["_cursor"]
         except KeyError:
-            print("End of list")
+            #print("End of list")
             return userlist
         for follower in data[lookfor]:
             userlist.append(follower["user"]["name"])
@@ -31,7 +31,10 @@ def parseInfo(url, lookfor):
     return data[lookfor]
 
 #Getting your own ID at the start
-ID = parseInfo("https://api.twitch.tv/kraken/channel", "_id")
+try:
+    ID = parseInfo("https://api.twitch.tv/kraken/channel", "_id")
+except:
+    print("Twitch API features not in use")
 
 def getUserID(user):
     url = "https://api.twitch.tv/kraken/users?login="+user
@@ -55,8 +58,4 @@ def totalSubs():
 
 def isSubbed(userid):
     url = 'https://api.twitch.tv/kraken/channels/'+ID+'/subscriptions/'+userid
-    try:
-       parseInfo(url, "sub_plan")
-    except urllib.error.HTTPError as e:
-        print("Couldn't get subscription status")
-        print(str(e.code) + " " + e.reason)
+    parseInfo(url, "sub_plan")

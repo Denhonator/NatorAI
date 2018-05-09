@@ -5,6 +5,7 @@ from threading import Thread
 import TextInput as AI
 import GenerateSentences as speak
 import SettingsAndPreferences as settings
+import TwitchAPI as api
 
 HOST = "irc.chat.twitch.tv"
 PORT = 6667
@@ -75,6 +76,66 @@ class GenerateMessage(Thread):
         print("GENERATED MESSAGE: " + reply)
         send_message(reply)
 
+class SubWatch(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        try:
+            self.subs = api.totalSubs()
+            for name in api.subs():
+                settings.userlist("approved users.txt", name)
+        except Exception as e:
+            print("Couldn't look up subs")
+            print(e)
+
+    def run(self):
+        try:
+            self.subs2 = api.totalSubs()
+            if self.subs2 != self.subs:
+                if self.subs2>self.subs:
+                    replywords = settings.findValue("SubReply")
+                    reply = ""
+                    for word in replywords:
+                        if word=="{}":
+                            reply+=api.subs()[0]+" "
+                        else:
+                            reply+= word+" "
+                    reply += speak.generateSentence(settings.findValue("SubFeed").strip().split())
+                    print("SUB REPLY: " + reply)
+                    send_message(reply)
+                self.subs = self.subs2
+                for name in api.subs():
+                    settings.userlist("approved users.txt", name)
+                    print("Updated sublist")
+        except Exception as e:
+            print("Couldn't look up subs")
+            print(e)
+        time.sleep(int(settings.findValue("SubCheckCooldown")))
+
+class FollowWatch(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        self.followers = api.totalFollowers()
+
+    def run(self):
+        try:
+            self.followers2 = api.totalFollowers()
+            if self.followers2 > self.followers and settings.findValue("FollowReply")!="30":
+                replywords = settings.findValue("FollowReply")
+                reply = ""
+                for word in replywords:
+                    if word=="{}":
+                        reply+=api.followers()[0]+" "
+                    else:
+                        reply+= word+" "
+                reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
+                print("FOLLOW REPLY: " + reply)
+                send_message(reply)
+            self.followers = self.followers2
+        except Exception as e:
+            print("Couldn't update follower count")
+            print(e)
+        time.sleep(int(settings.findValue("FollowCheckCooldown")))
+
 connectToTwitch()
 print("Talking set to "+settings.findValue("enableTalking"))
 print("Learning set to "+settings.findValue("enableLearning"))
@@ -92,6 +153,16 @@ wordAddingThread.setName('Word adding')
 
 messageGenThread = GenerateMessage()
 messageGenThread.setName('Message generation')
+
+if settings.findValue("enableSubCheck")=="1":
+    subChecker = SubWatch()
+    subChecker.setName('Sub checker')
+    subChecker.start()
+
+if settings.findValue("enableFollowCheck")=="1":
+    followChecker = FollowWatch()
+    followChecker.setName('Follow checker')
+    followChecker.start()
 
 message = ""
 
