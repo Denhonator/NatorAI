@@ -1,72 +1,62 @@
 import urllib.request
 import json
 import SettingsAndPreferences as settings
+import sys
 
-user = ""
-userid = 0
-myuser = ""
-myid = 0
 oauth = settings.findValue("APIOauth")
 clientid = settings.findValue("ClientID")
 
-#own ID
-def getownid(myuser):
-    channelIdUrl = "https://api.twitch.tv/kraken/users?login=denhonator"
-    headers2={
-    'Client-ID': clientid,
-    'Accept': 'application/vnd.twitchtv.v5+json',
-    'Content-Type': 'application/json'
-    }
-    req2 = urllib.request.Request(channelIdUrl, None, headers2)
-    resp2 = urllib.request.urlopen(req2)
-    info = str(resp2.read()).split("\"")
-    loop = 0
-    for text in info:
-        if text=="_id":
-            myid = info[loop+2]
-            break
-        loop+=1
-    return myid
-
-#ID of some user
-def getuserid(user):
-    channelIdUrl = "https://api.twitch.tv/kraken/users?login="+user
-    headers2={
+def parseInfo(url, lookfor):
+    headers={
     'Client-ID': clientid,
     'Accept': 'application/vnd.twitchtv.v5+json',
     'Authorization': 'OAuth '+oauth,
     'Content-Type': 'application/json'
     }
-    req2 = urllib.request.Request(channelIdUrl, None, headers2)
-    resp2 = urllib.request.urlopen(req2)
-    info = str(resp2.read()).split("\"")
-    loop = 0
-    for text in info:
-        if text=="_id":
-            userid = info[loop+2]
-            break
-        loop+=1
-    return userid
-
-#subscription status of user
-def usersub(userid):
-    url = 'https://api.twitch.tv/kraken/channels/'+myid+'/subscriptions/'+userid
-    headers = {'Accept': 'application/vnd.twitchtv.v5+json',
-               'Client-ID': clientid,
-               'Authorization': 'OAuth '+oauth,
-               'Content-Type': 'application/json'
-               }
     req = urllib.request.Request(url, None, headers)
-    try:
+    resp = urllib.request.urlopen(req)
+    data = json.loads(resp.read().decode("utf-8"))
+    userlist = []
+    while lookfor=="follows" or lookfor=="subscriptions":
+        try:
+            cursor = data["_cursor"]
+        except KeyError:
+            print("End of list")
+            return userlist
+        for follower in data[lookfor]:
+            userlist.append(follower["user"]["name"])
+        req = urllib.request.Request(url+"?cursor="+cursor, None, headers)
         resp = urllib.request.urlopen(req)
-        info = str(resp2.read()).split("\"")
-        print(info)
+        data = json.loads(resp.read().decode("utf-8"))
+    return data[lookfor]
+
+#Getting your own ID at the start
+ID = parseInfo("https://api.twitch.tv/kraken/channel", "_id")
+
+def getUserID(user):
+    url = "https://api.twitch.tv/kraken/users?login="+user
+    return parseInfo(url, "_id")
+
+def followers():
+    url = "https://api.twitch.tv/kraken/channels/"+ID+"/follows"
+    return parseInfo(url, "follows")
+
+def totalFollowers():
+    url = "https://api.twitch.tv/kraken/channels/"+ID+"/follows"
+    return parseInfo(url, "_total")
+
+def subs():
+    url = "https://api.twitch.tv/kraken/channels/"+ID+"/subscriptions"
+    return parseInfo(url, "subscriptions")
+
+def totalSubs():
+    url = "https://api.twitch.tv/kraken/channels/"+ID+"/subscriptions"
+    return parseInfo(url, "_total")
+
+def isSubbed(userid):
+    url = 'https://api.twitch.tv/kraken/channels/'+ID+'/subscriptions/'+userid
+    try:
+       parseInfo(url, "sub_plan")
     except urllib.error.HTTPError as e:
         print("Couldn't get subscription status")
         print(str(e.code) + " " + e.reason)
-
-myid = getownid(myuser)
-userid = getuserid(user)
-print(myid)
-print(userid)
-usersub(userid)
