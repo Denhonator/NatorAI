@@ -67,3 +67,29 @@ capitalization should be learned. These can manually be edited in "definitions.t
 
 Multiple memories:
 You can define a new folder for word data in folder.txt
+
+Sub and follower interaction:
+Requires you to create an app at https://dev.twitch.tv/ and take the client ID and head to
+https://twitchapps.com/tokengen/ and add scopes 
+channel_subscriptions channel_check_subscription channel_read
+Then you have the client-id and oauth to access subs and followers
+Add:
+APIOauth youroauth
+ClientID yourclientid
+
+You can then enable features by adding
+enableFollowCheck 1
+enableSubCheck 1
+
+By default this will update your "approved users.txt" with current subs
+
+You can also set:
+FollowCheckCooldown timeinseconds
+SubCheckCooldown timeinseconds
+
+If you add:
+FollowReply Thank you for the follow {}, 
+The AI will send that message to new followers, {} being replaced with their name
+After that the AI will generate a message, for which you can give words as feed with:
+FollowFeed why
+The same apply to subs with SubReply and SubFeed
