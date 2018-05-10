@@ -61,7 +61,7 @@ class GenerateMessage(Thread):
             wordAddingThread.join()
         if self.message:
             try:
-                feed = self.message.lower().split("nator,")[1].strip().split()
+                feed = self.message.lower().split(settings.findValue("call"))[1].strip().split()
                 if feed[0]=="":
                     feed = []
             except:
