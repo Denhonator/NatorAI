@@ -206,8 +206,9 @@ while True:
                 #print(username+" is a subscriber!")
             elif username in settings.userlist("approved users.txt"):
                 approved = True
-            
-            if "USERNOTICE" in parts[1]:
+
+            if msginfo.get("msg-id", ""):
+                print(msginfo["msg-id"]+" happened!")
                 msgid = msginfo["msg-id"]
                 if msgid=="resub":
                     months = msginfo.get("msg-param-months","0")
