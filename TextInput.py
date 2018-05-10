@@ -68,6 +68,8 @@ def findWords(words):
                     searchloop+=1
             if commonchar > 0 and (searchloop-commonchar>1 or len(word)<4):
                 addDefinition(word)
+            elif settings.findValue("AddAllToDefinitions")=="1" and loop>0:
+                addDefinition(word)
             elif speak.customFormatting(word)!=word and loop>0:
                 addDefinition(word)
         loop = loop+1
