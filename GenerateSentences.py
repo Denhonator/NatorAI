@@ -99,7 +99,7 @@ def nextword(word, feed, length=1):
         return feedword
     if chosenword:
         return chosenword
-    return feedword
+    return ""
 
 def findSentence(sentence):
     f = open(folder+"/sentences2.txt", "r")
