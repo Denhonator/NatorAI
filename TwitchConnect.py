@@ -94,22 +94,24 @@ class SubWatch(Thread):
     def run(self):
         subtype = "Sub"
         if self.months!="0":
-            subtype = "Resub"
-        replywords = settings.findValue(subtype+"Reply").split()
-        reply = ""
-        for word in replywords:
-            if word=="{}":
-                reply+="@"+self.user+" "
-            elif word=="[]":
-                reply+=self.months+" "
+            subtype = "Resub"     
+        subreply = settings.findValue(subtype+"Reply")
+        if subreply and subreply!="30" and settings.findValue("enableTalking"):
+            replywords = subreply.split()
+            reply = ""
+            for word in replywords:
+                if word=="{}":
+                    reply+="@"+self.user+" "
+                elif word=="[]":
+                    reply+=self.months+" "
+                else:
+                    reply+= word+" "
+            if settings.findValue(subtype+"Feed")!="30":
+                reply += speak.generateSentence(settings.findValue(subtype+"Feed").strip().split())
             else:
-                reply+= word+" "
-        if settings.findValue(subtype+"Feed")!="30":
-            reply += speak.generateSentence(settings.findValue(subtype+"Feed").strip().split())
-        else:
-            reply += speak.generateSentence([])
-        print("SUB REPLY: " + reply)
-        send_message(reply)
+                reply += speak.generateSentence([])
+            print("SUB REPLY: " + reply)
+            send_message(reply)
 
 class FollowWatch(Thread):
     def __init__(self):
@@ -117,11 +119,12 @@ class FollowWatch(Thread):
         self.followers = api.totalFollowers()
 
     def run(self):
-        while True:
+        followreply = settings.findValue("FollowReply")
+        while followreply!="30" and followreply:
             try:
                 self.followers2 = api.totalFollowers()
-                if self.followers2>self.followers and settings.findValue("FollowReply")!="30" and settings.findValue("enableTalking")=="1":
-                    replywords = settings.findValue("FollowReply").split()
+                if self.followers2>self.followers and followreply!="30" and settings.findValue("enableTalking")=="1":
+                    replywords = followreply.split()
                     reply = ""
                     for word in replywords:
                         if word=="{}":

@@ -41,7 +41,7 @@ def findValue(setting, value=None):
         f.close()
     if not value:
         print("Add definition for "+setting+" in 'settings and commands.txt'")
-        print("Returning 30 instead (means false in enable-type settings)")
+        print("Returning 30 instead (this keeps optional features disabled)")
         return "30"
     return value
 

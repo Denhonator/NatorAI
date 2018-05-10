@@ -77,19 +77,17 @@ Add:
 APIOauth youroauth
 ClientID yourclientid
 
-You can then enable features by adding
-enableFollowCheck 1
-enableSubCheck 1
-
-By default this will update your "approved users.txt" with current subs
+You can enable follow and sub replies by adding SubReply, ResubReply and FollowReply
+For these you can also set the feed for the message generation that will follow with
+SubFeed, ResubFeed and FollowFeed
 
 You can also set:
 FollowCheckCooldown timeinseconds
-SubCheckCooldown timeinseconds
 
 If you add:
 FollowReply Thank you for the follow {}, 
 The AI will send that message to new followers, {} being replaced with their name
 After that the AI will generate a message, for which you can give words as feed with:
 FollowFeed why
-The same apply to subs with SubReply and SubFeed
+The same applies to Subs and Resubs, but in ResubReply you can also add [], which will be replaced 
+with the amount of sub months
