@@ -70,8 +70,6 @@ class GenerateMessage(Thread):
         else:
             #print("No feed")
             feed = []
-        if feed:
-            print(feed)
         reply = speak.generateSentence(feed)
         print("GENERATED MESSAGE: " + reply)
         send_message(reply)
@@ -92,11 +90,11 @@ class SubWatch(Thread):
             self.subs2 = api.totalSubs()
             if self.subs2 != self.subs:
                 if self.subs2>self.subs:
-                    replywords = settings.findValue("SubReply")
+                    replywords = settings.findValue("SubReply").split()
                     reply = ""
                     for word in replywords:
                         if word=="{}":
-                            reply+=api.subs()[0]+" "
+                            reply+="@"+api.subs()[0]+" "
                         else:
                             reply+= word+" "
                     if settings.findValue("SubFeed")!="30":
@@ -122,12 +120,12 @@ class FollowWatch(Thread):
     def run(self):
         try:
             self.followers2 = api.totalFollowers()
-            if self.followers2 > self.followers and settings.findValue("FollowReply")!="30":
-                replywords = settings.findValue("FollowReply")
+            if self.followers2>self.followers and settings.findValue("FollowReply")!="30":
+                replywords = settings.findValue("FollowReply").split()
                 reply = ""
                 for word in replywords:
                     if word=="{}":
-                        reply+=api.followers()[0]+" "
+                        reply+="@"+api.followers()[0]+" "
                     else:
                         reply+= word+" "
                 if settings.findValue("FollowFeed")!="30":

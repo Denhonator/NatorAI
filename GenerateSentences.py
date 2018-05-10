@@ -166,6 +166,7 @@ def customFormatting(sentence):
     return output.strip()
 
 def generateSentence(feed):
+    print(feed)
     currentword = firstword(feed)
     output = currentword
     words = 1
