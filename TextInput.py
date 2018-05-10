@@ -56,19 +56,22 @@ def findWords(words):
         elif word.find('"')>-1:
             if not word.find('"',word.find('"'))>-1:
                 delete = True
-        if not delete and word.lower()!=settings.findValue("call") and word.lower() not in settings.userlist("word ignore list.txt"):
+        if not delete and word.lower()!=settings.findValue("call").lower() and word.lower() not in settings.userlist("word ignore list.txt"):
             if word[0]!="!":
                 final.append(word.lower())
             commonchar = 0
             searchloop = 0
+            hasletter = False
             for c in word:
+                if c.isalpha():
+                    hasletter = True
                 if c.isalpha() or c.isdigit():
                     if c!=c.lower() and (searchloop>0 or loop>0):
                         commonchar+=1
                     searchloop+=1
             if commonchar > 0 and (searchloop-commonchar>1 or len(word)<4):
                 addDefinition(word)
-            elif settings.findValue("AddAllToDefinitions")=="1" and loop>0:
+            elif settings.findValue("AddAllToDefinitions")=="1" and loop>0 and hasletter:
                 addDefinition(word)
             elif speak.customFormatting(word)!=word and loop>0:
                 addDefinition(word)
