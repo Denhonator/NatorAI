@@ -160,7 +160,7 @@ wordAddingThread.setName('Word adding')
 messageGenThread = GenerateMessage()
 messageGenThread.setName('Message generation')
 
-if settings.findValue("enableFollowCheck")=="1":
+if settings.findValue("FollowReply")!="30":
     followChecker = FollowWatch()
     followChecker.setName('Follow checker')
     followChecker.start()
@@ -203,7 +203,7 @@ while True:
             approved = False
             if msginfo.get("subscriber","0")!="0":
                 approved = True
-                print(username+" is a subscriber!")
+                #print(username+" is a subscriber!")
             elif username in settings.userlist("approved users.txt"):
                 approved = True
             
