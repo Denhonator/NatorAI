@@ -1,6 +1,7 @@
 try:
     f = open("folder.txt", "r")
     folder = f.readlines()[0].strip()
+    print("Using folder "+folder)
 except IOError as e:
     print("Couldn't read folder name from folder.txt")
     print("Folder name should be on first line of folder.txt")

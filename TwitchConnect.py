@@ -17,6 +17,16 @@ MSGPR = settings.findValue("MessagePrefix")
 
 s = socket.socket()
 
+def parseMessage(parts):
+    msginfo = {}
+    for line in parts[0].split(";"):
+        try:
+            (key, value) = line.split("=")
+            msginfo[key] = value
+        except:
+            pass
+    return msginfo
+
 def send_message(rep):
     if MSGPR != "30":
         prefix = MSGPR+" "
@@ -28,6 +38,7 @@ def connectToTwitch():
     s.connect((HOST, PORT))
     s.send(bytes("PASS " + PASS + "\r\n", "UTF-8"))
     s.send(bytes("NICK " + NICK + "\r\n", "UTF-8"))
+    s.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
     s.send(bytes("JOIN #" + JOIN + " \r\n", "UTF-8"))
     while True:
         line = str(s.recv(1024))
@@ -75,42 +86,30 @@ class GenerateMessage(Thread):
         send_message(reply)
 
 class SubWatch(Thread):
-    def __init__(self):
+    def __init__(self, user, months=0):
         Thread.__init__(self)
-        try:
-            self.subs = api.totalSubs()
-            for name in api.subs():
-                settings.userlist("approved users.txt", name)
-        except Exception as e:
-            print("Couldn't look up subs")
-            print(e)
+        self.user = user
+        self.months = months
 
     def run(self):
-        try:
-            self.subs2 = api.totalSubs()
-            if self.subs2 != self.subs:
-                if self.subs2>self.subs:
-                    replywords = settings.findValue("SubReply").split()
-                    reply = ""
-                    for word in replywords:
-                        if word=="{}":
-                            reply+="@"+api.subs()[0]+" "
-                        else:
-                            reply+= word+" "
-                    if settings.findValue("SubFeed")!="30":
-                        reply += speak.generateSentence(settings.findValue("SubFeed").strip().split())
-                    else:
-                        reply += speak.generateSentence([])
-                    print("SUB REPLY: " + reply)
-                    send_message(reply)
-                self.subs = self.subs2
-                for name in api.subs():
-                    settings.userlist("approved users.txt", name)
-                    print("Updated sublist")
-        except Exception as e:
-            print("Couldn't look up subs")
-            print(e)
-        time.sleep(int(settings.findValue("SubCheckCooldown")))
+        subtype = "Sub"
+        if self.months!="0":
+            subtype = "Resub"
+        replywords = settings.findValue(subtype+"Reply").split()
+        reply = ""
+        for word in replywords:
+            if word=="{}":
+                reply+="@"+self.user+" "
+            elif word=="[]":
+                reply+=self.months+" "
+            else:
+                reply+= word+" "
+        if settings.findValue(subtype+"Feed")!="30":
+            reply += speak.generateSentence(settings.findValue(subtype+"Feed").strip().split())
+        else:
+            reply += speak.generateSentence([])
+        print("SUB REPLY: " + reply)
+        send_message(reply)
 
 class FollowWatch(Thread):
     def __init__(self):
@@ -118,27 +117,28 @@ class FollowWatch(Thread):
         self.followers = api.totalFollowers()
 
     def run(self):
-        try:
-            self.followers2 = api.totalFollowers()
-            if self.followers2>self.followers and settings.findValue("FollowReply")!="30":
-                replywords = settings.findValue("FollowReply").split()
-                reply = ""
-                for word in replywords:
-                    if word=="{}":
-                        reply+="@"+api.followers()[0]+" "
+        while True:
+            try:
+                self.followers2 = api.totalFollowers()
+                if self.followers2>self.followers and settings.findValue("FollowReply")!="30" and settings.findValue("enableTalking")=="1":
+                    replywords = settings.findValue("FollowReply").split()
+                    reply = ""
+                    for word in replywords:
+                        if word=="{}":
+                            reply+="@"+api.followers()[0]+" "
+                        else:
+                            reply+= word+" "
+                    if settings.findValue("FollowFeed")!="30":
+                        reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
                     else:
-                        reply+= word+" "
-                if settings.findValue("FollowFeed")!="30":
-                    reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
-                else:
-                    reply += speak.generateSentence([])
-                print("FOLLOW REPLY: " + reply)
-                send_message(reply)
-            self.followers = self.followers2
-        except Exception as e:
-            print("Couldn't update follower count")
-            print(e)
-        time.sleep(int(settings.findValue("FollowCheckCooldown")))
+                        reply += speak.generateSentence([])
+                    print("FOLLOW REPLY: " + reply)
+                    send_message(reply)
+                self.followers = self.followers2
+            except Exception as e:
+                print("Couldn't update follower count")
+                print(e)
+            time.sleep(int(settings.findValue("FollowCheckCooldown")))
 
 connectToTwitch()
 print("Talking set to "+settings.findValue("enableTalking"))
@@ -148,20 +148,14 @@ timeOfReply = 0
 cooldown = int(settings.findValue("cooldown"))
 longerCooldown = int(settings.findValue("longerCooldown"))
 autoCooldown = int(settings.findValue("autoCooldown"))
-s.settimeout(1)
+s.settimeout(10)
 call = settings.findValue("call")
-skip = False
 
 wordAddingThread = AddWords()
 wordAddingThread.setName('Word adding')
 
 messageGenThread = GenerateMessage()
 messageGenThread.setName('Message generation')
-
-if settings.findValue("enableSubCheck")=="1":
-    subChecker = SubWatch()
-    subChecker.setName('Sub checker')
-    subChecker.start()
 
 if settings.findValue("enableFollowCheck")=="1":
     followChecker = FollowWatch()
@@ -187,20 +181,46 @@ while True:
             if line.find("PING")==2:    #making sure ping pong works
                 s.send(bytes("PONG\r\n", "UTF-8"))
                 print("PONG")
-            parts = line.split(':', 2) 
-            if len(parts) < 3:
                 continue
-
-            if "QUIT" not in parts[1] and "JOIN" not in parts[1] and "PART" not in parts[1]:
-                message = parts[2][:len(parts[2])]
+            if len(line)<5:
+                continue
+            parts = line.split(" :", 2)
+            if len(parts) > 2:
+                message = parts[2].strip()
             else:
                 print(line)
+                message = ""
+                print("No message found")
 
-            usernamesplit = parts[1].split("!")
-            username = usernamesplit[0]
+            msginfo = parseMessage(parts)
+            username = msginfo.get("display-name","")
+            if not username:
+                print("No display-name found")
+                
+            approved = False
+            if msginfo.get("subscriber","0")!="0":
+                approved = True
+                print(username+" is a subscriber!")
+            if username in settings.userlist("approved users.txt"):
+                approved = True
             
-            #print(username+": "+message)
+            if "USERNOTICE" in parts[1]:
+                msgid = msginfo["msg-id"]
+                if msgid=="resub":
+                    months = msginfo.get("msg-param-months","0")
+                if msgid=="sub":
+                    if settings.findValue("enableTalking")=="1":
+                        subChecker = SubWatch(username, months)
+                        subChecker.setName('Sub message')
+                        subChecker.start()               
+
+            if "PRIVMSG" not in parts[1] and message:
+                print("Non PRIVMSG message: "+message)
+
+            if not message:
+                continue
             
+            #learning
             if not username in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
                 if (MSGPR=="30" and username!=NICK) or (MSGPR!="30" and message.find(MSGPR)!=0):
                     if wordAddingThread.is_alive():
@@ -208,9 +228,8 @@ while True:
                     else:
                         wordAddingThread = AddWords(message)
                         wordAddingThread.start()
-                else:
-                    print("Ignored itself")
-
+                    
+            #commands
             try:
                 if message.split()[0][0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
                     if len(message.strip().split())>1:
@@ -221,9 +240,10 @@ while True:
                     send_message(reply)
             except IndexError:
                 print(message+" caused index error")
-
+                
+            #talking
             if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfReply) > autoCooldown):
-                if (abs(time.clock()-timeOfReply)>cooldown and username in settings.userlist("approved users.txt")) or abs(time.clock()-timeOfReply)>longerCooldown:
+                if (abs(time.clock()-timeOfReply)>cooldown and approved) or abs(time.clock()-timeOfReply)>longerCooldown:
                     if (MSGPR=="30" and username!=NICK) or (MSGPR!="30" and message.find(MSGPR)!=0):    #don't reply to yourself
                         if messageGenThread.is_alive():
                             print("Skipping because generating another message")
