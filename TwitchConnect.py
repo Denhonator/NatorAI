@@ -204,7 +204,7 @@ while True:
             if msginfo.get("subscriber","0")!="0":
                 approved = True
                 print(username+" is a subscriber!")
-            if username in settings.userlist("approved users.txt"):
+            elif username in settings.userlist("approved users.txt"):
                 approved = True
             
             if "USERNOTICE" in parts[1]:
