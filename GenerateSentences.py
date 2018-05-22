@@ -33,14 +33,13 @@ def firstword(feed):
                     chosenword = w
             if w in feed:
                 if len(feed)>1 and randint(1,100) < int(int(settings.findValue("FeedInFirstWord"))/len(feed)):
-                    print("Feed word "+w+" used")
                     return w
                 if len(feed)==1:
                     feedword = w
         linenumber += 1
     f.close()
     if feedword and randint(1,100) < int(settings.findValue("FeedInFirstWord")):
-        print("Feed word "+w+" used")
+        print("Feed word "+feedword+" used")
         return feedword
     if chosenword:
         return chosenword
@@ -95,7 +94,7 @@ def nextword(word, feed, length=1):
         print("No next words for "+word)
         return ""
     if feedword and randint(1,100) < int(settings.findValue("FeedInNextWord")):
-        print("Feed word "+w+" used")
+        print("Feed word "+feedword+" used")
         return feedword
     if chosenword:
         return chosenword
@@ -170,6 +169,7 @@ def generateSentence(feed):
     currentword = firstword(feed)
     output = currentword
     words = 1
+    spamlimit = int(settings.findValue("SpamLimit"))
     endsentence = False
     while words < 100:
         if currentword in feed:
@@ -241,6 +241,106 @@ def generateSentence(feed):
                     currentword = ""
             
         else:
+            prevword = ""
+            spam=0
+            filtered = ""
+            for word in output.strip().split():
+                if word==prevword:
+                    spam+=1
+                    #print("Spam detected: "+str(spam))
+                else:
+                    spam=0
+                prevword = word
+                if not spam>spamlimit:
+                    filtered+=word+" "
+                else:
+                    print("Reduced spam")
+            output = filtered.strip()
             return customFormatting(output.capitalize())
-    print("Couldn't make a sentence, output was " + output)
+    print("Something went wrong, output was: " + output)
     return ""
+
+def altGenerateSentence(feed=[]):
+    sentences = []
+    used = []
+    realused = []
+    amount = 0
+    loop = 0
+    output = ""
+    f = open(folder+"/sentences2.txt", "r")
+    for line in f.readlines():
+        if loop==0:
+            amount = int(line.split(" -- ")[1])
+        else:
+            (w, c) = line.split(" -- ")
+            sentences.append((w, int(c)))
+        loop+=1
+
+    output+=firstword(feed)
+    print(output)
+    generating = True
+    while generating:
+        amount = 0
+        selected = []
+        used = []
+        for sen, c in sentences:
+            if sen in realused:
+                continue
+            if len(output.split())==1 and output.lower() in sen.lower():
+                loop = 0
+                for word2 in sen.lower().split():
+                    if word2 == output.lower():
+                        try:
+                            selected.append((sen.split()[loop+1], c))
+                            used.append(sen)
+                            amount += c
+                        except IndexError:
+                            pass
+                    loop+=1
+                
+            elif len(output.split())>1:
+                loop = 0
+                found = False
+                for word2 in sen.lower().split():
+                    if word2 == output.lower().split()[-2]:
+                        found = True
+                    elif word2 == output.lower().split()[-1] and found:
+                        try:
+                            selected.append((sen.split()[loop+1], c))
+                            used.append(sen)
+                            amount += c
+                        except IndexError:
+                            pass
+                    loop+=1
+        if selected:
+            selection = randint(1,amount)
+            word = ""
+            loop = 0
+            current = 0
+            for w, c in selected:
+                current+=c
+                if current>=selection and not word:
+                    word = w
+                else:
+                    del used[loop]
+                    loop+=-1
+                loop+=1
+            realused.append(used[0])
+            output += " "+word.strip()
+        elif realused:
+            for sen in realused:
+                loop = 0
+                for word in sen.split():
+                    if word==output.split()[-1]:
+                        try:
+                            output+=" "+sen.strip().split()[loop+1]
+                            break
+                        except IndexError:
+                            generating = False
+                            break
+                    loop+=1
+        else:
+            break
+        if len(output)>150:
+            break
+    print(output)
