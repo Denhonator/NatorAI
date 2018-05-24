@@ -1,3 +1,4 @@
+import random
 try:
     f = open("folder.txt", "r")
     folder = f.readlines()[0].strip()
@@ -17,21 +18,17 @@ def findValue(setting, value=None):
         f = open(folder+"/settings and commands.txt", "r")
         
     output = ""
-    entryFound = False
-    
+    entries = []
     for line in f.readlines():
         (w, s) = line.split(" ", 1)
         if w.lower().strip()==setting.lower().strip():
-            entryFound = True
+            entries.append(s.strip())
             if value:
                 s = str(value)
-                output += w+" "+s+"\n"
-            else:
-                f.close()
-                return s.strip()
+                output += w+" "+s+"\n" 
         elif value:
             output += line.strip()+"\n"
-    if not entryFound and value:
+    if not entries and value:
         output += setting+" "+str(value)
     output = output.strip()
     f.close()
@@ -40,9 +37,12 @@ def findValue(setting, value=None):
         f.write(output)
         f.close()
     if not value:
-        print("Add definition for "+setting+" in 'settings and commands.txt'")
-        print("Returning 30 instead (this keeps optional features disabled)")
-        return "30"
+        if entries:
+            return entries[random.randint(0,len(entries)-1)].strip()
+        else:
+            print("Add definition for "+setting+" in 'settings and commands.txt'")
+            print("Returning 30 instead (this keeps optional features disabled)")
+            return "30"
     return value
 
 def userlist(filename, add=None):
@@ -75,22 +75,19 @@ def commandList(add=None, reply=None):
         f.close()
         f = open(folder+"/"+filename, "r")
     output = ""
-    foundEntry = False
+    entries = []
     for line in f.readlines():
         (c, r) = (line[:line.find(" ")],line[line.find(" ")+1:])
-        if(c[0]=="!"):
-            print(c+" found")
         if c.strip().lower()==add.strip().lower():
-            foundEntry = True
-            if not reply:
-                f.close()
-                return r
-            elif reply!="delete":
+            entries.append(r)
+            if reply and reply!="delete":
                 output += c+" "+reply+"\n"
         else:
             output += line
     f.close()
-    if not foundEntry and reply and reply!="delete":
+    if entries and not reply:
+        return entries[random.randint(0,len(entries)-1)].strip()
+    if not entries and reply and reply!="delete":
         output = output.strip()
         output += "\n"+add+" "+reply
     if reply:

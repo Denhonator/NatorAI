@@ -104,12 +104,15 @@ class SubWatch(Thread):
                     reply+="@"+self.user+" "
                 elif word=="[]":
                     reply+=self.months+" "
+                elif word=="()":
+                    if settings.findValue(subtype+"Feed")!="30":
+                        reply += speak.generateSentence(settings.findValue(subtype+"Feed").strip().split())
+                    else:
+                        reply += speak.generateSentence([])
+                    reply+=" "
                 else:
                     reply+= word+" "
-            if settings.findValue(subtype+"Feed")!="30":
-                reply += speak.generateSentence(settings.findValue(subtype+"Feed").strip().split())
-            else:
-                reply += speak.generateSentence([])
+            reply=reply.strip()
             print("SUB REPLY: " + reply)
             send_message(reply)
 
@@ -122,19 +125,22 @@ class FollowWatch(Thread):
         followreply = settings.findValue("FollowReply")
         while followreply!="30" and followreply:
             try:
-                self.followers2 = api.totalFollowers()
+                self.followers2 = api.totalFollowers()               
                 if self.followers2>self.followers and followreply!="30" and settings.findValue("enableTalking")=="1":
                     replywords = followreply.split()
                     reply = ""
                     for word in replywords:
                         if word=="{}":
                             reply+="@"+api.followers()[0]+" "
+                        elif word=="()":
+                            if settings.findValue("FollowFeed")!="30":
+                                reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
+                            else:
+                                reply += speak.generateSentence([])
+                            reply+=" "
                         else:
                             reply+= word+" "
-                    if settings.findValue("FollowFeed")!="30":
-                        reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
-                    else:
-                        reply += speak.generateSentence([])
+                    reply=reply.strip()
                     print("FOLLOW REPLY: " + reply)
                     send_message(reply)
                 self.followers = self.followers2
