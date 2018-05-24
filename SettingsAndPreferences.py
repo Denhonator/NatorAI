@@ -20,7 +20,10 @@ def findValue(setting, value=None):
     output = ""
     entries = []
     for line in f.readlines():
-        (w, s) = line.split(" ", 1)
+        try:
+            (w, s) = line.split(" ", 1)
+        except ValueError:
+            pass
         if w.lower().strip()==setting.lower().strip():
             entries.append(s.strip())
             if value:
@@ -77,7 +80,10 @@ def commandList(add=None, reply=None):
     output = ""
     entries = []
     for line in f.readlines():
-        (c, r) = (line[:line.find(" ")],line[line.find(" ")+1:])
+        try:
+            (c, r) = line.split(" ", 1)
+        except ValueError:
+            pass
         if c.strip().lower()==add.strip().lower():
             entries.append(r)
             if reply and reply!="delete":
