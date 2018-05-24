@@ -32,6 +32,8 @@ def send_message(rep):
         prefix = MSGPR+" "
     else:
         prefix = ""
+    while len(prefix+rep)>=500: #hard cap
+        rep=rep[:-1]
     s.send(bytes("PRIVMSG #" + SENDTO + " :" + prefix + rep + "\r\n", "UTF-8"))
 
 def connectToTwitch():
@@ -97,22 +99,13 @@ class SubWatch(Thread):
             subtype = "Resub"     
         subreply = settings.findValue(subtype+"Reply")
         if subreply and subreply!="30" and settings.findValue("enableTalking"):
-            replywords = subreply.split()
-            reply = ""
-            for word in replywords:
-                if word=="{}":
-                    reply+="@"+self.user+" "
-                elif word=="[]":
-                    reply+=self.months+" "
-                elif word=="()":
-                    if settings.findValue(subtype+"Feed")!="30":
-                        reply += speak.generateSentence(settings.findValue(subtype+"Feed").strip().split())
-                    else:
-                        reply += speak.generateSentence([])
-                    reply+=" "
-                else:
-                    reply+= word+" "
-            reply=reply.strip()
+            feed = []
+            subfeed = settings.findValue(subtype+"Feed").strip()
+            if subfeed!="30":
+                feed = subfeed.split()
+            if subreply.find("()")>-1:
+                gen = speak.generateSentence(feed)
+            reply=subreply.replace("{}", "@"+self.user).replace("[]", self.months).replace("()", gen).strip()
             print("SUB REPLY: " + reply)
             send_message(reply)
 
@@ -127,20 +120,15 @@ class FollowWatch(Thread):
             try:
                 self.followers2 = api.totalFollowers()               
                 if self.followers2>self.followers and followreply!="30" and settings.findValue("enableTalking")=="1":
-                    replywords = followreply.split()
-                    reply = ""
-                    for word in replywords:
-                        if word=="{}":
-                            reply+="@"+api.followers()[0]+" "
-                        elif word=="()":
-                            if settings.findValue("FollowFeed")!="30":
-                                reply += speak.generateSentence(settings.findValue("FollowFeed").strip().split())
-                            else:
-                                reply += speak.generateSentence([])
-                            reply+=" "
-                        else:
-                            reply+= word+" "
-                    reply=reply.strip()
+                    followreply = settings.findValue("FollowReply")
+                    feed = []
+                    gen = ""
+                    followfeed = settings.findValue("FollowFeed").strip()
+                    if followfeed!="30":
+                        feed = followfeed.split()
+                    if followreply.find("()")>-1:
+                        gen = speak.generateSentence(feed)
+                    reply=followreply.replace("{}", "@"+api.followers()[0]).replace("()", gen).strip()
                     print("FOLLOW REPLY: " + reply)
                     send_message(reply)
                 self.followers = self.followers2
