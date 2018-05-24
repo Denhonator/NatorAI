@@ -216,10 +216,9 @@ while True:
             if msginfo.get("msg-id", ""):
                 print(msginfo["msg-id"]+" happened!")
                 msgid = msginfo["msg-id"]
-                if msgid=="resub":
-                    months = msginfo.get("msg-param-months","0")
-                if msgid=="sub":
+                if msgid=="sub" or msgid=="resub":
                     if settings.findValue("enableTalking")=="1":
+                        months = msginfo.get("msg-param-months","0")
                         subChecker = SubWatch(username, months)
                         subChecker.setName('Sub message')
                         subChecker.start()               
