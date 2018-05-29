@@ -187,7 +187,7 @@ while True:
             else:
                 print(line)
                 message = ""
-                print("No message found")
+                print("Not a usual message, ignoring")
 
             msginfo = parseMessage(parts)
             username = msginfo.get("display-name","")

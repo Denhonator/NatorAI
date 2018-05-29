@@ -50,6 +50,7 @@ def findWords(words):
     for word in words:
         delete = False
         word = word.strip()
+        word = word.replace("?", "")
         scan = re.sub('[^A-Za-z0-9]+', '¤', word.translate(str.maketrans('','','\',.-!')))
         if scan.find('¤') > -1:
             delete = True
