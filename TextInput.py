@@ -5,6 +5,51 @@ import SettingsAndPreferences as settings
 
 folder = settings.folder
 
+def load():
+    sentences = []
+    try:
+        f = open(folder+"/sentences2.txt", "r")
+        for line in f.readlines():
+            try:
+                (s, c) = line.split(" -- ")
+                sentences.append((s,int(c.strip())))
+            except:
+                pass
+    except IOError:
+        print("Couldn't load "+folder+"/sentences2.txt")
+    return sentences
+
+def save(sentences):
+    f = open(folder+"/sentences2.txt", "w")
+    output=""
+    for s, c in sentences:
+        output+=s.replace("\\xe2\\x80\\x99","'")+" -- "+str(c)+"\n"
+    f.write(output.strip())
+    f.close()
+
+def firstwords(sentences):
+    words = {}
+    for s, c in sentences:
+        if not s=="TotalAmountOfSentences":
+            w = s.split()[0].lower()
+            words[w]=words.get(w,0)+c
+    return words
+
+def nextwords(sentences):
+    words = {}
+    for s, c in sentences:
+        if not s=="TotalAmountOfSentences":
+            loop=0
+            parts = s.strip().lower().split()
+            for w in parts:
+                words[w] = words.get(w,{})
+                try:
+                    words[w][parts[loop+1]] = words[w].get(parts[loop+1],0)+c
+                except IndexError:
+                    words[w]["LastWord"] = words[w].get("LastWord",0)+c
+                loop+=1
+    return words
+
 def addDefinition(specialword):
     found = False
     output = ""
