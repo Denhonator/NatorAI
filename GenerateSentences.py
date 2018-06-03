@@ -261,6 +261,27 @@ def generateSentence(feed):
     print("Something went wrong, output was: " + output)
     return ""
 
+def spamfilter(message):
+    spamlimit=int(settings.findValue("SpamLimit"))
+    prevword = ""
+    spam=0
+    filtered = ""
+    reduced = False
+    for word in message.strip().split():
+        if word==prevword:
+            spam+=1
+            #print("Spam detected: "+str(spam))
+        else:
+            spam=0
+        prevword = word
+        if not spam>spamlimit:
+            filtered+=word+" "
+        else:
+            reduced = True
+    if reduced:
+        print("Spam reduced")
+    return filtered.strip()
+
 def entryfromlist(data, amount):
     selection = randint(1,amount)
     current=0
@@ -322,7 +343,7 @@ def capitalization(data, message):
     msg = message.capitalize().split()
     output = ""
     for word in msg:
-        if output and not (data.get(word.lower(), (word, 1))[0].lower()==data.get(word.lower(), (word, 1))[0]):
+        if not (data.get(word.lower(), (word, 1))[0].lower()==data.get(word.lower(), (word, 1))[0]):
             output+=data.get(word.lower(), (word, 1))[0]+" "
         else:
             output+=word+" "
@@ -363,4 +384,4 @@ def newGenerateSentence(feed=[]):
         except KeyError:
             print("Data not found for "+currentword)
             break
-    print(capitalization(data["Definitions"], output))
+    print(spamfilter(capitalization(data["Definitions"], output)))

@@ -15,15 +15,14 @@ def load():
             try:
                 (s, c) = line.split(" -- ")
                 if(s!="TotalAmountOfSentences"):                   
-                    sentences.append((s,int(c.strip())))                
+                    sentences.append((s,int(c.strip())))
                     count+=int(c.strip())
-                else:
-                    data["TotalSentences"] = data.get("TotalSentences",0)+int(c.strip())
             except ValueError:
                 pass
     except IOError:
         print("Couldn't load "+folder+"/sentences2.txt")
     data["Sentences"] = sentences
+    data["TotalSentences"] = count
     print("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences")
 
 def add(sentence):
@@ -45,7 +44,12 @@ def save():
     f = open(folder+"/sentences2.txt", "w")
     output="TotalAmountOfSentences -- "+str(data["TotalSentences"])+"\n"
     for s, c in data["Sentences"]:
-        output+=s.replace("\\xe2\\x80\\x99","'")+" -- "+str(c)+"\n"
+        if s[-1]==",":
+            output+=s.replace("\\xe2\\x80\\x99","'")+" "
+        elif output[-1]==" ":
+            output+=s.replace("\\xe2\\x80\\x99","'")+" -- 1\n"
+        else:
+            output+=s.replace("\\xe2\\x80\\x99","'")+" -- "+str(c)+"\n"
     f.write(output.strip())
     f.close()
 
