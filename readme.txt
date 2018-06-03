@@ -16,8 +16,6 @@ oauth oauth:xxxxxxxxxxxxxxxx
 
 TwitchConnect.py is the main file to launch, but hold on, check your settings
 
-Then for the settings
-
 MessagePrefix adds characters before the bot's messages. If the bot uses your personal
 account (which is useful so the bot won't get kicked out or anything), this can be used to
 make it clear when the bot is speaking and when it's actually you.
@@ -34,19 +32,18 @@ FeedInFirstWord and FeedInNextWord are chances in percentage for something from 
 to appear in the first word and the following words correspondingly. Good values are generally
 between 50 and 100
 
-msgLengthModifier affects how long the messages tend to be. 1 is a good value, but can be
-increased slightly if longer replies are wanted
+msgLengthModifier affects how long the messages tend to be. I recommend at least 4 here, I'm using 10.
 
-Once the reply length hits maxMessageLength, no more words will be added
+Once the reply character amount hits maxMessageLength, no more words will be added
 
 msgContinuationModifier affects the chance to continue the reply even though a sentence
 has been chosen to be finished. 4 seems good in my experience.
-maxContinuationLength determines how long the message can be to use this forementioned
+maxContinuationLength determines how long the message can be in characters to use this forementioned
 message continuation
 
 sentenceChance is a percentage value for the chance to continue the two last words with some
 known third word. This tends to generate fuller sentences, sometimes even repeating
-what someone has at some point said. I recommend 70-100 for this
+what someone has at some point said. I recommend 100 unless you want more random results.
 
 enableLearning enables learning words from the chat that has been joined. 1 or 0.
 enableTalking is the same, but for sending messages. When starting out, you should
@@ -63,7 +60,7 @@ the same way.
 Emotes and other special capitalization:
 The bot keeps track of special capitalization. Each time a word is typed differently than
 what the bot currently knows, it will unlearn an entry. In the end, the most common
-capitalization should be learned. These can manually be edited in "definitions.txt"
+capitalization should be learned. ~~These can manually be edited in "definitions.txt"~~
 
 Multiple memories:
 You can define a new folder for word data in folder.txt
@@ -87,7 +84,10 @@ FollowCheckCooldown timeinseconds
 If you add:
 FollowReply Thank you for the follow {}, 
 The AI will send that message to new followers, {} being replaced with their name
-After that the AI will generate a message, for which you can give words as feed with:
-FollowFeed why
+You can also place a randomly generated message with (). You can give feedwords to it too.
+Example for follow: FollowFeed why
 The same applies to Subs and Resubs, but in ResubReply you can also add [], which will be replaced 
 with the amount of sub months
+
+I have added a small UI, which for now can mostly be used to save what the AI has learned. If you do not want to save,
+you should hit "Quit without saving". Otherwise it will save.
