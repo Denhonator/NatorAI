@@ -1,6 +1,7 @@
 from random import randint
 import re
 import SettingsAndPreferences as settings
+import TextInput
 
 folder = settings.folder
 
@@ -260,87 +261,96 @@ def generateSentence(feed):
     print("Something went wrong, output was: " + output)
     return ""
 
-def altGenerateSentence(feed=[]):
-    sentences = []
-    used = []
-    realused = []
-    amount = 0
-    loop = 0
-    output = ""
-    f = open(folder+"/sentences2.txt", "r")
-    for line in f.readlines():
-        if loop==0:
-            amount = int(line.split(" -- ")[1])
-        else:
-            (w, c) = line.split(" -- ")
-            sentences.append((w, int(c)))
-        loop+=1
+def entryfromlist(data, amount):
+    selection = randint(1,amount)
+    current=0
+    for w, c in data:
+        current+=c
+        if current >= selection:
+            return w
 
-    output+=firstword(feed)
-    print(output)
-    generating = True
-    while generating:
-        amount = 0
-        selected = []
-        used = []
-        for sen, c in sentences:
-            if sen in realused:
-                continue
-            if len(output.split())==1 and output.lower() in sen.lower():
-                loop = 0
-                for word2 in sen.lower().split():
-                    if word2 == output.lower():
-                        try:
-                            selected.append((sen.split()[loop+1], c))
-                            used.append(sen)
-                            amount += c
-                        except IndexError:
-                            pass
-                    loop+=1
-                
-            elif len(output.split())>1:
-                loop = 0
-                found = False
-                for word2 in sen.lower().split():
-                    if word2 == output.lower().split()[-2]:
-                        found = True
-                    elif word2 == output.lower().split()[-1] and found:
-                        try:
-                            selected.append((sen.split()[loop+1], c))
-                            used.append(sen)
-                            amount += c
-                        except IndexError:
-                            pass
-                    loop+=1
-        if selected:
-            selection = randint(1,amount)
-            word = ""
-            loop = 0
-            current = 0
-            for w, c in selected:
-                current+=c
-                if current>=selection and not word:
-                    word = w
+def word(data, feed, ignorelast=0):
+    current = 0
+    fromfeed = []
+    feedwords = 0
+    currentword = ""
+    if "Occurances" in data.keys():
+        pos = "NextWord"
+        selection = randint(1,data["Occurances"])
+        items = data.items()
+    else:
+        pos = "FirstWord"
+        selection = randint(1,data["TotalFirstWords"])
+        items = data["FirstWords"].items()
+    for w, c in items:
+        if w!="Occurances":
+            current+=c
+            if current >= selection and not currentword:
+                if w=="LastWord" and len(items)>2 and randint(1,100)<ignorelast:
+                    selection = randint(current,data["Occurances"])
                 else:
-                    del used[loop]
-                    loop+=-1
-                loop+=1
-            realused.append(used[0])
-            output += " "+word.strip()
-        elif realused:
-            for sen in realused:
-                loop = 0
-                for word in sen.split():
-                    if word==output.split()[-1]:
-                        try:
-                            output+=" "+sen.strip().split()[loop+1]
-                            break
-                        except IndexError:
-                            generating = False
-                            break
-                    loop+=1
-        else:
+                    currentword = w
+                    if not feed:
+                        break
+            if w in feed:
+                fromfeed.append((w,c))
+                feedwords+=c
+    if fromfeed and randint(1,100)<int(settings.findValue("FeedIn"+pos)):
+        selection = randint(1,feedwords)
+        currentword = entryfromlist(fromfeed, feedwords)
+        print(currentword+" from feed")
+    return currentword
+
+def thirdword(sentences, words):
+    entries = []
+    total = 0
+    words = words.split()[-2]+" "+words.split()[-1]      
+    for s, c in sentences:
+        if words in s:
+            try:
+                cont = s[s.find(words)+len(words):]
+                if cont.strip().split()[0] in s.split():
+                    entries.append((cont.strip().split()[0], c))
+                    total+=c
+            except IndexError:
+                pass
+    if entries:
+        return entryfromlist(entries, total)
+    return ""
+
+def newGenerateSentence(feed=[]):
+    data = TextInput.data
+    currentword = word(data, feed)
+    output = currentword+" "
+    usedwords = []
+    lengthmod = int(settings.findValue("msgLengthModifier"))
+    while(currentword):
+        if currentword in feed:
+            feed.remove(currentword)
+        try:
+            temp = ""
+            if output.strip()!=currentword and randint(1,100) < int(settings.findValue("sentenceChance")):
+                temp = thirdword(data["Sentences"], output.strip())
+                if temp and temp not in usedwords:
+                    currentword = temp
+                    usedwords.append(currentword)
+                    #print(currentword+" from thirdword")
+            if not temp or (temp and currentword!=temp):
+                currentword = word(data["NextWords"][currentword.lower()], feed, lengthmod*20-len(output))
+                if currentword=="LastWord" and len(output)<int(settings.findValue("maxContinuationLength")):
+                    r = randint(8*int(settings.findValue("msgContinuationModifier"))-(len(output)*2),100)
+                    if r>90:
+                        currentword = word(data, feed)
+                    elif r>80:
+                        currentword = "and"
+                    elif r>70:
+                        currentword = "or"
+                    elif r>60:
+                        currentword = "but"
+                if currentword=="LastWord":
+                    break
+            output+=currentword+" "
+        except KeyError:
+            print("Data not found for "+currentword)
             break
-        if len(output)>150:
-            break
-    print(output)
+    print(output.strip())

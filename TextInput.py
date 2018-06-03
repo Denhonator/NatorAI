@@ -4,51 +4,84 @@ import GenerateSentences  as speak
 import SettingsAndPreferences as settings
 
 folder = settings.folder
+data = {"Sentences": []}
 
 def load():
     sentences = []
+    count = 0
     try:
         f = open(folder+"/sentences2.txt", "r")
         for line in f.readlines():
             try:
                 (s, c) = line.split(" -- ")
-                sentences.append((s,int(c.strip())))
-            except:
+                if(s!="TotalAmountOfSentences"):                   
+                    sentences.append((s,int(c.strip())))                
+                    count+=int(c.strip())
+                else:
+                    data["TotalSentences"] = data.get("TotalSentences",0)+int(c.strip())
+            except ValueError:
                 pass
     except IOError:
         print("Couldn't load "+folder+"/sentences2.txt")
-    return sentences
+    data["Sentences"] = sentences
+    print("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences")
 
-def save(sentences):
+def add(sentence):
+    added = False
+    sentences = []
+    data["TotalSentences"]=data.get("TotalSentences",0)+1
+    for s, c in data["Sentences"]:
+        if sentence.lower().strip()==s:
+            c+=1
+            added = True
+        sentences.append((s,c))
+    if not added:
+        sentences.append((sentence, 1))
+    data["Sentences"] = sentences
+    firstwords([(sentence, 1)])
+    nextwords([(sentence, 1)])
+
+def save():
     f = open(folder+"/sentences2.txt", "w")
-    output=""
-    for s, c in sentences:
+    output="TotalAmountOfSentences -- "+str(data["TotalSentences"])+"\n"
+    for s, c in data["Sentences"]:
         output+=s.replace("\\xe2\\x80\\x99","'")+" -- "+str(c)+"\n"
     f.write(output.strip())
     f.close()
 
 def firstwords(sentences):
-    words = {}
+    count = 0
+    words = data.get("FirstWords",{})
     for s, c in sentences:
-        if not s=="TotalAmountOfSentences":
-            w = s.split()[0].lower()
-            words[w]=words.get(w,0)+c
-    return words
+        w = s.split()[0].lower()
+        words[w]=words.get(w,0)+c
+        count+=c
+    data["FirstWords"] = words
+    data["TotalFirstWords"] = data.get("TotalFirstWords",0)+count
+    print("Added "+str(count)+" entries to FirstWords")
 
 def nextwords(sentences):
-    words = {}
+    count = 0
+    words = data.get("NextWords",{})
     for s, c in sentences:
-        if not s=="TotalAmountOfSentences":
-            loop=0
-            parts = s.strip().lower().split()
-            for w in parts:
-                words[w] = words.get(w,{})
-                try:
-                    words[w][parts[loop+1]] = words[w].get(parts[loop+1],0)+c
-                except IndexError:
-                    words[w]["LastWord"] = words[w].get("LastWord",0)+c
-                loop+=1
-    return words
+        loop=0
+        parts = s.strip().lower().split()
+        for w in parts:
+            words[w] = words.get(w,{})
+            words[w]["Occurances"] = words[w].get("Occurances",0)+c
+            words[w]["LastWord"] = words[w].get("LastWord",0)
+            try:
+                words[w][parts[loop+1]] = words[w].get(parts[loop+1],0)+c
+            except IndexError:
+                words[w]["LastWord"] = words[w].get("LastWord",0)+c
+            loop+=1
+            count+=c
+    data["NextWords"] = words
+    print("Added "+str(count)+" entries to NextWords")
+
+load()
+firstwords(data["Sentences"])
+nextwords(data["Sentences"])
 
 def addDefinition(specialword):
     found = False
