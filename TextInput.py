@@ -60,13 +60,27 @@ def firstwords(sentences):
     data["TotalFirstWords"] = data.get("TotalFirstWords",0)+count
     print("Added "+str(count)+" entries to FirstWords")
 
+def definitions(word):
+    if word!=word.lower() or word!=word.upper():
+        data["Definitions"] = data.get("Definitions", {})
+        (w, c) = data["Definitions"].get(word.lower(), (word, 0))
+        if w!=word:
+            if c>1:
+                data["Definitions"][word.lower()] = (w, c-1)
+            else:
+                data["Definitions"][word.lower()] = (word, 1)
+        else:
+            data["Definitions"][word.lower()] = (w, c+1)
+        
 def nextwords(sentences):
     count = 0
     words = data.get("NextWords",{})
     for s, c in sentences:
         loop=0
-        parts = s.strip().lower().split()
-        for w in parts:
+        parts = s.strip().split()
+        for wo in parts:
+            w = wo.lower()
+            definitions(wo)
             words[w] = words.get(w,{})
             words[w]["Occurances"] = words[w].get("Occurances",0)+c
             words[w]["LastWord"] = words[w].get("LastWord",0)

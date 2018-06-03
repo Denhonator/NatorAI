@@ -318,6 +318,16 @@ def thirdword(sentences, words):
         return entryfromlist(entries, total)
     return ""
 
+def capitalization(data, message):
+    msg = message.capitalize().split()
+    output = ""
+    for word in msg:
+        if output and not (data.get(word.lower(), (word, 1))[0].lower()==data.get(word.lower(), (word, 1))[0]):
+            output+=data.get(word.lower(), (word, 1))[0]+" "
+        else:
+            output+=word+" "
+    return output.strip()
+
 def newGenerateSentence(feed=[]):
     data = TextInput.data
     currentword = word(data, feed)
@@ -353,4 +363,4 @@ def newGenerateSentence(feed=[]):
         except KeyError:
             print("Data not found for "+currentword)
             break
-    print(output.strip())
+    print(capitalization(data["Definitions"], output))
