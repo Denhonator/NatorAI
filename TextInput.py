@@ -55,7 +55,7 @@ def save():
             count+=c
     f.write(output.strip())
     f.close()
-    print("Saved "+str(c)+" sentences")
+    print("Saved "+str(count)+" sentences")
 
 def firstwords(sentences):
     count = 0
@@ -88,7 +88,8 @@ def nextwords(sentences):
         parts = s.strip().split()
         for wo in parts:
             w = wo.lower()
-            definitions(wo)
+            if loop>0:
+                definitions(wo)
             words[w] = words.get(w,{})
             words[w]["Occurances"] = words[w].get("Occurances",0)+c
             words[w]["LastWord"] = words[w].get("LastWord",0)

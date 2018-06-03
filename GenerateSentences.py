@@ -387,4 +387,4 @@ def newGenerateSentence(feed=[]):
         except KeyError:
             print("Data not found for "+currentword)
             break
-    print(spamfilter(capitalization(data["Definitions"], output)))
+    return spamfilter(capitalization(data["Definitions"], output))

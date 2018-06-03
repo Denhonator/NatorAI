@@ -6,6 +6,9 @@ import TextInput as AI
 import GenerateSentences as speak
 import SettingsAndPreferences as settings
 import TwitchAPI as api
+from tkinter import *
+from tkinter import scrolledtext
+import os
 
 HOST = "irc.chat.twitch.tv"
 PORT = 6667
@@ -62,6 +65,38 @@ class AddWords(Thread):
             AI.add(self.message)
         else:
             print("No words received")
+
+class getInput(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        self.save = True
+
+    def run(self):
+        self.window = Tk()
+        self.window.title("NatorAI")
+        self.window.geometry('350x210')
+        def save():     
+            AI.save()
+            txt.insert(INSERT,'Saved!')
+        def nosave():
+            self.save = False
+            self.window.quit()
+        save = Button(self.window, text="Save", command=save, height=2, width=45)
+        save.grid(column=0, row=1)
+        nosave = Button(self.window, text="Quit without saving", command=nosave, height=2, width=45)
+        nosave.grid(column=0, row=3)
+        savequit = Button(self.window, text="Save and quit", command=self.window.quit, height=2, width=45)
+        savequit.grid(column=0, row=2)
+        txt = scrolledtext.ScrolledText(self.window,width=40,height=5)
+        txt.grid(column=0,row=0)
+        try:
+            self.window.mainloop()
+            if self.save:
+                AI.save()
+            os._exit(1)
+        except:
+            print("UI crash, saving... program should still run")
+            AI.save()
 
 class GenerateMessage(Thread):
     def __init__(self, message=None):
@@ -153,11 +188,15 @@ wordAddingThread.setName('Word adding')
 messageGenThread = GenerateMessage()
 messageGenThread.setName('Message generation')
 
+getinput = getInput()
+getinput.start()
+
 if settings.findValue("FollowReply")!="30":
     followChecker = FollowWatch()
     followChecker.setName('Follow checker')
     followChecker.start()
 
+print("All systems go")
 message = ""
 
 while True:
@@ -189,7 +228,7 @@ while True:
                 print("Not a usual message, ignoring")
 
             msginfo = parseMessage(parts)
-            username = msginfo.get("display-name","")
+            username = msginfo.get("display-name","").lower()
             if not username:
                 print("No display-name found")
                 
@@ -227,9 +266,9 @@ while True:
                     
             #commands
             try:
-                if message[0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
-                    if message.split()[0]=="!save" and username in settings.userlist("whitelist"):
-                        AI.save()
+                if message.split()[0]=="!save" and username in settings.userlist("whitelist.txt"):
+                    AI.save()
+                elif message[0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
                     if len(message.strip().split())>1:
                         reply = settings.commandList(message.strip().split()[0], message[message.find(" ")+1:])
                     else:
