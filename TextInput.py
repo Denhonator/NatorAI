@@ -5,6 +5,9 @@ import SettingsAndPreferences as settings
 
 folder = settings.folder
 data = {"Sentences": []}
+ignorewords = settings.userlist("word ignore list.txt")
+if not ignorewords:
+    print("Word ignore list.txt empty")
 
 def load():
     sentences = []
@@ -26,6 +29,10 @@ def load():
     print("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences")
 
 def add(sentence):
+    for word in ignorewords:
+        if word.lower() in sentence.lower():
+            print("Ignored sentence due to ignored word")
+            return
     added = False
     sentences = []
     data["TotalSentences"]=data.get("TotalSentences",0)+1

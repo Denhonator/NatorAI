@@ -358,7 +358,8 @@ def newGenerateSentence(feed=[]):
     sentchance = int(settings.findValue("sentenceChance"))
     contmax = int(settings.findValue("maxContinuationLength"))
     contmod = int(settings.findValue("msgContinuationModifier"))
-    while(currentword):
+    lengthmax = nt(settings.findValue("maxMessageLength"))
+    while(currentword and len(output)<lengthmax):
         if currentword in feed:
             feed.remove(currentword)
         try:
