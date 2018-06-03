@@ -45,6 +45,9 @@ sentenceChance is a percentage value for the chance to continue the two last wor
 known third word. This tends to generate fuller sentences, sometimes even repeating
 what someone has at some point said. I recommend 100 unless you want more random results.
 
+SpamLimit limits how many times the same word can be repeated. At 0 no repetition is allowed, at 1
+only two in a row are allowed etc. Useful for reducing emote spamming, recommended to have 0-5 here.
+
 enableLearning enables learning words from the chat that has been joined. 1 or 0.
 enableTalking is the same, but for sending messages. When starting out, you should
 set this to 0, as the program can crash if it tries to form sentences without knowing anything
