@@ -355,12 +355,15 @@ def newGenerateSentence(feed=[]):
     output = currentword+" "
     usedwords = []
     lengthmod = int(settings.findValue("msgLengthModifier"))
+    sentchance = int(settings.findValue("sentenceChance"))
+    contmax = int(settings.findValue("maxContinuationLength"))
+    contmod = int(settings.findValue("msgContinuationModifier"))
     while(currentword):
         if currentword in feed:
             feed.remove(currentword)
         try:
             temp = ""
-            if output.strip()!=currentword and randint(1,100) < int(settings.findValue("sentenceChance")):
+            if output.strip()!=currentword and randint(1,100) < sentchance:
                 temp = thirdword(data["Sentences"], output.strip())
                 if temp and temp not in usedwords:
                     currentword = temp
@@ -368,8 +371,8 @@ def newGenerateSentence(feed=[]):
                     #print(currentword+" from thirdword")
             if not temp or (temp and currentword!=temp):
                 currentword = word(data["NextWords"][currentword.lower()], feed, lengthmod*20-len(output))
-                if currentword=="LastWord" and len(output)<int(settings.findValue("maxContinuationLength")):
-                    r = randint(8*int(settings.findValue("msgContinuationModifier"))-(len(output)*2),100)
+                if currentword=="LastWord" and len(output)<contmax:
+                    r = randint(8*contmod-(len(output)*2),100)
                     if r>90:
                         currentword = word(data, feed)
                     elif r>80:

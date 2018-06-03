@@ -15,7 +15,7 @@ def load():
             try:
                 (s, c) = line.split(" -- ")
                 if(s!="TotalAmountOfSentences"):                   
-                    sentences.append((s,int(c.strip())))
+                    sentences.append((s.replace("\\'","'"),int(c.strip())))
                     count+=int(c.strip())
             except ValueError:
                 pass
@@ -43,15 +43,19 @@ def add(sentence):
 def save():
     f = open(folder+"/sentences2.txt", "w")
     output="TotalAmountOfSentences -- "+str(data["TotalSentences"])+"\n"
+    count = 0
     for s, c in data["Sentences"]:
         if s[-1]==",":
             output+=s.replace("\\xe2\\x80\\x99","'")+" "
         elif output[-1]==" ":
             output+=s.replace("\\xe2\\x80\\x99","'")+" -- 1\n"
+            count+=1
         else:
             output+=s.replace("\\xe2\\x80\\x99","'")+" -- "+str(c)+"\n"
+            count+=c
     f.write(output.strip())
     f.close()
+    print("Saved "+str(c)+" sentences")
 
 def firstwords(sentences):
     count = 0

@@ -59,8 +59,7 @@ class AddWords(Thread):
         if messageGenThread.is_alive():
             messageGenThread.join()
         if self.message:
-            AI.altSentences(self.message)
-            AI.addWords(AI.findWords(self.message.split()))
+            AI.add(self.message)
         else:
             print("No words received")
 
@@ -83,7 +82,7 @@ class GenerateMessage(Thread):
         else:
             #print("No feed")
             feed = []
-        reply = speak.generateSentence(feed)
+        reply = speak.newGenerateSentence(feed)
         print("GENERATED MESSAGE: " + reply)
         send_message(reply)
 
@@ -104,7 +103,7 @@ class SubWatch(Thread):
             if subfeed!="30":
                 feed = subfeed.split()
             if subreply.find("()")>-1:
-                gen = speak.generateSentence(feed)
+                gen = speak.newGenerateSentence(feed)
             reply=subreply.replace("{}", "@"+self.user).replace("[]", self.months).replace("()", gen).strip()
             print("SUB REPLY: " + reply)
             send_message(reply)
@@ -127,7 +126,7 @@ class FollowWatch(Thread):
                     if followfeed!="30":
                         feed = followfeed.split()
                     if followreply.find("()")>-1:
-                        gen = speak.generateSentence(feed)
+                        gen = speak.newGenerateSentence(feed)
                     reply=followreply.replace("{}", "@"+api.followers()[0]).replace("()", gen).strip()
                     print("FOLLOW REPLY: " + reply)
                     send_message(reply)
@@ -228,7 +227,9 @@ while True:
                     
             #commands
             try:
-                if message.split()[0][0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
+                if message[0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
+                    if message.split()[0]=="!save" and username in settings.userlist("whitelist"):
+                        AI.save()
                     if len(message.strip().split())>1:
                         reply = settings.commandList(message.strip().split()[0], message[message.find(" ")+1:])
                     else:
