@@ -1,3 +1,2 @@
-Never stop at ,
-Remove characters like single " that don't belong
-Rewrite word adding to fix incorrect last word entries
+Add everything to UI
+Replace the rest of the direct reading from file with loading to RAM
