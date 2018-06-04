@@ -9,94 +9,85 @@ except IOError as e:
     print("And all other files than that and .py files should be under the folder")
     raise e
 
-def findValue(setting, value=None):
+settings = {}
+
+def load(file):
     try:
-        f = open(folder+"/settings and commands.txt", "r")
-    except:
-        f = open(folder+"/settings and commands.txt", "w")
+        f = open(folder+"/"+file, "r")
+        for line in f.readlines():
+            try:
+                (w, s) = line.split(" ", 1)
+                s=s.strip()
+                try:
+                    settings[w].append(s)
+                except KeyError:
+                    settings[w]=[s]
+            except ValueError:
+                if line.strip():
+                    try:
+                        settings[file.split()[0].replace(".txt","")].append(line.strip())
+                    except KeyError:
+                        settings[file.split()[0].replace(".txt","")]=[line.strip()]
         f.close()
-        f = open(folder+"/settings and commands.txt", "r")
-        
-    output = ""
-    entries = []
-    for line in f.readlines():
-        try:
-            (w, s) = line.split(" ", 1)
-        except ValueError:
-            pass
-        if w.lower().strip()==setting.lower().strip():
-            entries.append(s.strip())
-            if value:
-                s = str(value)
-                output += w+" "+s+"\n" 
-        elif value:
-            output += line.strip()+"\n"
-    if not entries and value:
-        output += setting+" "+str(value)
-    output = output.strip()
-    f.close()
-    if value:
-        f = open(folder+"/settings and commands.txt", "w")
-        f.write(output)
-        f.close()
-    if not value:
-        if entries:
-            return entries[random.randint(0,len(entries)-1)].strip()
+        print("Loaded "+file)
+    except IOError:
+        print(folder+"/"+file+" does not exist")
+
+def loadall():
+    load("approved users.txt")
+    load("ignore list.txt")
+    load("whitelist.txt")
+    load("word ignore list.txt")
+    load("settings and commands.txt")
+
+loadall()
+
+def save(file):
+    key = file.split()[0].replace(".txt","")
+    output=""
+    try:
+        if "settings" in file:
+            for (w, s) in settings.items():
+                if w != "word" and w != "whitelist" and w != "ignore" and w != "approved":
+                    for e in s:
+                        output+=w+" "+e+"\n"
         else:
-            print("Add definition for "+setting+" in 'settings and commands.txt'")
-            print("Returning 30 instead (this keeps optional features disabled)")
-            return "30"
-    return value
+            for v in settings[key]:
+                output+=v+"\n"
+        if output:
+            f = open(folder+"/"+file, "w")
+            f.write(output.strip())
+            f.close()
+    except KeyError:
+        pass
+    if not output:
+        print("Nothing to save to "+file)
+    else:
+        print("Saved to "+file)
+
+def saveall():
+    save("approved users.txt")
+    save("ignore list.txt")
+    save("settings and commands.txt")
+    save("whitelist.txt")
+    save("word ignore list.txt")
+
+def findValue(setting, value=None):
+    key = setting.split()[0]
+    try:
+        return settings[key][random.randint(0,len(settings[key])-1)]
+    except KeyError:
+        print("Couldn't find value, returning 30 instead")
+        print("This keeps toggleable features off")
+        settings[key]=["30"]
+        return "30"
 
 def userlist(filename, add=None):
+    key = filename.split()[0].replace(".txt","")
     try:
-        f = open(folder+"/"+filename, "r")
-    except:
-        f = open(folder+"/"+filename, "w")
-        f.write(add.strip())
-        f.close()
-        return [add]
-    listOfNicks = []
-    try:
-        for line in f.readlines():
-            listOfNicks.append(line.strip().lower())
-        f.close()
-        if add and add not in listOfNicks:
-            listOfNicks.append(add.strip().lower())
-            f = open(folder+"/"+filename, "a")
-            f.write("\n"+add)
-    except:
-        print("Couldn't read "+filename)
-    return listOfNicks
+        return settings[key]
+    except KeyError:
+        return []
 
 def commandList(add=None, reply=None):
-    filename = "settings and commands.txt"
-    try:
-        f = open(folder+"/"+filename, "r")
-    except:
-        f = open(folder+"/"+filename, "w")
-        f.close()
-        f = open(folder+"/"+filename, "r")
-    output = ""
-    entries = []
-    for line in f.readlines():
-        try:
-            (c, r) = line.split(" ", 1)
-        except ValueError:
-            pass
-        if c.strip().lower()==add.strip().lower():
-            entries.append(r)
-            if reply and reply!="delete":
-                output += c+" "+reply+"\n"
-        else:
-            output += line
-    f.close()
-    if entries and not reply:
-        return entries[random.randint(0,len(entries)-1)].strip()
-    if not entries and reply and reply!="delete":
-        output = output.strip()
-        output += "\n"+add+" "+reply
-    if reply:
-        f = open(folder+"/"+filename, "w")
-        f.write(output.strip())
-    return reply
+    return findValue(add)
