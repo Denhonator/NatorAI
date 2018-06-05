@@ -368,6 +368,10 @@ def newGenerateSentence(feed=[]):
                 temp = thirdword(data["Sentences"], output.strip())
                 if temp and temp not in usedwords:
                     currentword = temp
+                    if word(data["NextWords"][currentword.lower()], feed, lengthmod*20-len(output))=="LastWord":
+                        if (lengthmax-5)-len(output)<randint(1,100):
+                            output+=currentword
+                            break
                     usedwords.append(currentword)
                     #print(currentword+" from thirdword")
             if not temp or (temp and currentword!=temp):
