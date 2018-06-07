@@ -73,7 +73,7 @@ def firstwords(sentences):
         count+=c
     data["FirstWords"] = words
     data["TotalFirstWords"] = data.get("TotalFirstWords",0)+count
-    print("Added "+str(count)+" entries to FirstWords")
+    #print("Added "+str(count)+" entries to FirstWords")
 
 def definitions(word):
     if word!=word.lower() or word!=word.upper():
@@ -107,7 +107,7 @@ def nextwords(sentences):
             loop+=1
             count+=c
     data["NextWords"] = words
-    print("Added "+str(count)+" entries to NextWords")
+    #print("Added "+str(count)+" entries to NextWords")
 
 load()
 firstwords(data["Sentences"])

@@ -209,7 +209,7 @@ class getInput(Thread):
         txt = scrolledtext.ScrolledText(self.window,width=40,height=10)
         txt.grid(column=0,row=0,sticky=N)
         txt.insert(INSERT, "Change, add, remove settings/commands/values. Choose one from the left menu, then add a value to 0, "
-                            "unless you want to have multiple values. Insert '-' to remove an entry. Only way to not save AI/settings"
+                            "unless you want to have multiple values. Insert '-' to remove an entry. Only way to not save AI/settings "
                             "is to select 'Quit without saving'. If you want to change the AI folder, edit folder.txt and relaunch the program\n\n")
         entry = Entry(self.window)
         entry.grid(row=1,column=2)
