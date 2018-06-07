@@ -95,7 +95,7 @@ def nextwords(sentences):
         parts = s.strip().split()
         for wo in parts:
             w = wo.lower()
-            if loop>0:
+            if loop>0 or (loop==0 and wo.capitalize()!=wo):
                 definitions(wo)
             words[w] = words.get(w,{})
             words[w]["Occurances"] = words[w].get("Occurances",0)+c

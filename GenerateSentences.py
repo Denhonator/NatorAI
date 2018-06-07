@@ -325,6 +325,7 @@ def word(data, feed, ignorelast=0):
 def thirdword(sentences, words):
     entries = []
     total = 0
+    length = len(words)
     words = words.split()[-2]+" "+words.split()[-1]      
     for s, c in sentences:
         if words in s:
@@ -334,7 +335,9 @@ def thirdword(sentences, words):
                     entries.append((cont.strip().split()[0], c))
                     total+=c
             except IndexError:
-                pass
+                if randint(-70*int(settings.findValue("msgLengthModifier")),100)>((int(settings.findValue("maxMessageLength"))/2)-length):
+                    entries.append(("LastWord", c))
+                    total+=c
     if entries:
         return entryfromlist(entries, total)
     return ""
@@ -343,7 +346,7 @@ def capitalization(data, message):
     msg = message.capitalize().split()
     output = ""
     for word in msg:
-        if not (data.get(word.lower(), (word, 1))[0].lower()==data.get(word.lower(), (word, 1))[0]):
+        if word.lower()==word and not (data.get(word.lower(), (word, 1))[0].lower()==data.get(word.lower(), (word, 1))[0]):
             output+=data.get(word.lower(), (word, 1))[0]+" "
         else:
             output+=word+" "
@@ -367,6 +370,9 @@ def newGenerateSentence(feed=[]):
             if output.strip()!=currentword and randint(1,100) < sentchance:
                 temp = thirdword(data["Sentences"], output.strip())
                 if temp and temp not in usedwords:
+                    if temp=="LastWord":
+                        print("Third word was final")
+                        break
                     currentword = temp
                     if word(data["NextWords"][currentword.lower()], feed, lengthmod*20-len(output))=="LastWord":
                         if (lengthmax-5)-len(output)<randint(1,100):
