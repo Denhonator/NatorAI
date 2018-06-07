@@ -10,6 +10,35 @@ except IOError as e:
     raise e
 
 settings = {}
+use = ["NICK",
+    "JOIN",
+    "SENDTO",
+    "oauth",
+    "MessagePrefix",
+    "cooldown",
+    "longerCooldown",
+    "autoCooldown",
+    "call",
+    "FeedInFirstWord",
+    "FeedInNextWord",
+    "msgLengthModifier",
+    "maxMessageLength",
+    "msgContinuationModifier",
+    "maxContinuationLength",
+    "sentenceChance",
+    "SpamLimit",
+    "enableLearning",
+    "enableTalking",
+    "APIOauth",
+    "ClientID",
+    "enableFollowCheck",
+    "FollowCheckCooldown",
+    "FollowReply",
+    "FollowFeed",
+    "SubReply",
+    "SubFeed",
+    "ResubReply",
+    "ResubFeed",]
 
 def load(file):
     try:
@@ -18,10 +47,13 @@ def load(file):
             try:
                 (w, s) = line.split(" ", 1)
                 s=s.strip()
-                try:
-                    settings[w].append(s)
-                except KeyError:
-                    settings[w]=[s]
+                if file!="settings and commands.txt" or w in use or w[0]=="!":
+                    try:
+                        settings[w].append(s)
+                    except KeyError:
+                        settings[w]=[s]
+                else:
+                    print("\""+line.strip()+"\" wasn't recognized as a valid setting or command")
             except ValueError:
                 if line.strip():
                     try:
@@ -77,7 +109,7 @@ def findValue(setting, value=None):
     try:
         return settings[key][random.randint(0,len(settings[key])-1)]
     except KeyError:
-        print("Couldn't find value, returning 30 instead")
+        print("Couldn't find value, returning 30 instead and saving it")
         print("This keeps toggleable features off")
         settings[key]=["30"]
         return "30"

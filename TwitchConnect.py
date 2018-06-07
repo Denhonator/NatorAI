@@ -16,7 +16,6 @@ NICK = settings.findValue("NICK")
 JOIN = settings.findValue("JOIN")
 SENDTO = settings.findValue("SENDTO")
 PASS = settings.findValue("oauth")
-MSGPR = settings.findValue("MessagePrefix")
 
 s = socket.socket()
 
@@ -31,6 +30,7 @@ def parseMessage(parts):
     return msginfo
 
 def send_message(rep):
+    MSGPR = settings.findValue("MessagePrefix")
     if MSGPR != "30":
         prefix = MSGPR+" "
     else:
@@ -80,12 +80,23 @@ class getInput(Thread):
         def save():     
             AI.save()
             txt.insert(INSERT,'Saved AI!\n')
-        def saveset():     
+        def saveset():
+            if entry.get() and entry.get()!="-":
+                print("Updating "+self.key+str(self.index)+" with "+entry.get())
+                try:
+                    settings.settings[self.key][self.index]=entry.get()
+                except IndexError:
+                    settings.settings[self.key].append(entry.get())
             settings.saveall()
             txt.insert(INSERT,'Saved settings!\n')
         def nosave():
             self.save = False
             self.window.quit()
+        def addentry():
+            self.entryamount
+            name = newentry.get()
+            settings.settings[name] = ["EditMe"]
+            sets.insert(self.entryamount, name)
         def onselect(evt):
             if entry.get() and entry.get()!="-":
                 print("Updating "+self.key+str(self.index)+" with "+entry.get())
@@ -135,16 +146,20 @@ class getInput(Thread):
         txt.grid(column=0,row=0,sticky=N)
         entry = Entry(self.window)
         entry.grid(row=1,column=2)
+        newentry = Entry(self.window)
+        newentry.grid(row=6, column=1)
+        add = Button(self.window, text="Add", command=addentry, height=1, width=5)
+        add.grid(row=6, column=2, sticky=W)
         entries = Listbox(self.window,height=5)
         entries.bind('<<ListboxSelect>>',subselect)
         entries.insert(0, "0")
         entries.grid(column=2,row=0)
         sets = Listbox(self.window,height=20)
         sets.bind('<<ListboxSelect>>', onselect)
-        loop=0
+        self.entryamount=0
         for w in settings.settings.keys():
-            loop+=1
-            sets.insert(loop, w)
+            self.entryamount+=1
+            sets.insert(self.entryamount, w)
         sets.grid(column=1,row=0,rowspan=5)
         try:
             self.window.mainloop()
@@ -155,6 +170,7 @@ class getInput(Thread):
         except:
             print("UI crash, saving... program should still run")
             AI.save()
+            settings.saveall()
 
 class GenerateMessage(Thread):
     def __init__(self, message=None):
@@ -234,11 +250,7 @@ print("Talking set to "+settings.findValue("enableTalking"))
 print("Learning set to "+settings.findValue("enableLearning"))
 ohno = 0
 timeOfReply = 0
-cooldown = int(settings.findValue("cooldown"))
-longerCooldown = int(settings.findValue("longerCooldown"))
-autoCooldown = int(settings.findValue("autoCooldown"))
 s.settimeout(10)
-call = settings.findValue("call")
 
 wordAddingThread = AddWords()
 wordAddingThread.setName('Word adding')
@@ -313,9 +325,15 @@ while True:
             if not message:
                 continue
             
+            #update settings
+            cooldown = int(settings.findValue("cooldown"))
+            longerCooldown = int(settings.findValue("longerCooldown"))
+            autoCooldown = int(settings.findValue("autoCooldown"))
+            prefix = settings.findValue("MessagePrefix")
+            call = settings.findValue("call")
             #learning
             if not username in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
-                if (MSGPR=="30" and username!=NICK) or (MSGPR!="30" and message.find(MSGPR)!=0):
+                if (prefix=="30" and username!=NICK) or (prefix!="30" and message.find(prefix)!=0):
                     if wordAddingThread.is_alive():
                         print("Skipping because adding previous words")
                     else:
@@ -339,7 +357,7 @@ while True:
             #talking
             if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfReply) > autoCooldown):
                 if (abs(time.clock()-timeOfReply)>cooldown and approved) or abs(time.clock()-timeOfReply)>longerCooldown:
-                    if (MSGPR=="30" and username!=NICK) or (MSGPR!="30" and message.find(MSGPR)!=0):    #don't reply to yourself
+                    if (prefix=="30" and username!=NICK) or (prefix!="30" and message.find(prefix)!=0):    #don't reply to yourself
                         if messageGenThread.is_alive():
                             print("Skipping because generating another message")
                         else:
@@ -348,6 +366,7 @@ while True:
                             messageGenThread.start()
                     
     except socket.timeout:
+        autoCooldown = int(settings.findValue("autoCooldown"))
         if settings.findValue("enableTalking")=="1" and abs(time.clock()-timeOfReply) > autoCooldown:
             if messageGenThread.is_alive():
                 print("Skipping because generating another message")
