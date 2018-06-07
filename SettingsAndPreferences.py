@@ -31,7 +31,6 @@ use = ["NICK",
     "enableTalking",
     "APIOauth",
     "ClientID",
-    "enableFollowCheck",
     "FollowCheckCooldown",
     "FollowReply",
     "FollowFeed",
@@ -106,6 +105,11 @@ def saveall():
 
 def findValue(setting, value=None):
     key = setting.split()[0]
+    if value:
+        if settings.get(key, None):
+            settings[key].append(value)
+        else:
+            settings[key]=[value]
     try:
         return settings[key][random.randint(0,len(settings[key])-1)]
     except KeyError:
