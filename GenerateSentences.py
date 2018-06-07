@@ -346,7 +346,7 @@ def capitalization(data, message):
     msg = message.capitalize().split()
     output = ""
     for word in msg:
-        if word.lower()==word and not (data.get(word.lower(), (word, 1))[0].lower()==data.get(word.lower(), (word, 1))[0]):
+        if (word.lower()==word or word==msg[0]) and not (data.get(word.lower(), (word, 1))[0].lower()==data.get(word.lower(), (word, 1))[0]):
             output+=data.get(word.lower(), (word, 1))[0]+" "
         else:
             output+=word+" "
