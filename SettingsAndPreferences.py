@@ -113,9 +113,10 @@ def findValue(setting, value=None):
     try:
         return settings[key][random.randint(0,len(settings[key])-1)]
     except KeyError:
-        print("Couldn't find value, returning 30 instead and saving it")
-        print("This keeps toggleable features off")
-        settings[key]=["30"]
+        if setting[0]!="!":
+            print("Couldn't find value for "+key+", returning 30 instead and saving it")
+            print("This keeps toggleable features off")
+            settings[key]=["30"]
         return "30"
 
 def userlist(filename, add=None):

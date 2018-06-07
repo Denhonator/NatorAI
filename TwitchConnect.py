@@ -48,6 +48,8 @@ def connectToTwitch():
             if len(text)>1:
                 print(text)
         if "End of /NAMES list" in line:
+            global go
+            go = False
             break
 
 class AddWords(Thread):
@@ -118,12 +120,22 @@ class getInput(Thread):
                     settings.settings[self.key].append(entry.get())
             settings.saveall()
             txt.insert(INSERT,'Saved settings!\n')
+            txt.see("end")
         def nosave():
             self.save = False
             self.window.quit()
         def connect():
             global go
             go = True
+            timeout = 0
+            while go and timeout<3:
+                time.sleep(0.1)
+                timeout+=0.1
+            if timeout<3:
+                txt.insert(INSERT, "Connected!")
+            else:
+                txt.insert(INSERT, "Failed to connect")
+            txt.see("end")
         def addentry():
             self.entryamount
             name = newentry.get()
@@ -198,7 +210,7 @@ class getInput(Thread):
         txt.grid(column=0,row=0,sticky=N)
         txt.insert(INSERT, "Change, add, remove settings/commands/values. Choose one from the left menu, then add a value to 0, "
                             "unless you want to have multiple values. Insert '-' to remove an entry. Only way to not save AI/settings"
-                            "is to select 'Quit without saving'. If you want to change the AI folder, edit folder.txt and relaunch the program")
+                            "is to select 'Quit without saving'. If you want to change the AI folder, edit folder.txt and relaunch the program\n\n")
         entry = Entry(self.window)
         entry.grid(row=1,column=2)
         newentry = Entry(self.window)
@@ -412,8 +424,9 @@ while True:
                         reply = settings.commandList(message.strip().split()[0], message[message.find(" ")+1:])
                     else:
                         reply = settings.commandList(message.split()[0])
-                    print("COMMAND RESPONSE: " + reply)
-                    send_message(reply)
+                    if reply!="30":
+                        print("COMMAND RESPONSE: " + reply)
+                        send_message(reply)
             except IndexError:
                 print(message+" caused index error")
                 
