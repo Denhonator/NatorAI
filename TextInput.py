@@ -37,6 +37,10 @@ def add(sentence):
     sentences = []
     data["TotalSentences"]=data.get("TotalSentences",0)+1
     for s, c in data["Sentences"]:
+        s=s.replace("\\xe2\\x80\\x99","'")
+        if s.count('\\')>4 and s.count('x')>4:
+            print("Ignored sentence due to weird symbols")
+            continue
         if sentence.lower().strip()==s:
             c+=1
             added = True
@@ -52,13 +56,14 @@ def save():
     output="TotalAmountOfSentences -- "+str(data["TotalSentences"])+"\n"
     count = 0
     for s, c in data["Sentences"]:
+        s=s.replace("\\xe2\\x80\\x99","'")
         if s[-1]==",":
-            output+=s.replace("\\xe2\\x80\\x99","'")+" "
+            output+=s+" "
         elif output[-1]==" ":
-            output+=s.replace("\\xe2\\x80\\x99","'")+" -- 1\n"
+            output+=s+" -- 1\n"
             count+=1
         else:
-            output+=s.replace("\\xe2\\x80\\x99","'")+" -- "+str(c)+"\n"
+            output+=s+" -- "+str(c)+"\n"
             count+=c
     f.write(output.strip())
     f.close()
@@ -101,7 +106,7 @@ def nextwords(sentences):
             words[w]["Occurances"] = words[w].get("Occurances",0)+c
             words[w]["LastWord"] = words[w].get("LastWord",0)
             try:
-                words[w][parts[loop+1]] = words[w].get(parts[loop+1],0)+c
+                words[w][parts[loop+1].lower()] = words[w].get(parts[loop+1].lower(),0)+c
             except IndexError:
                 words[w]["LastWord"] = words[w].get("LastWord",0)+c
             loop+=1

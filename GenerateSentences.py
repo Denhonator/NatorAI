@@ -294,6 +294,9 @@ def word(data, feed, ignorelast=0):
     current = 0
     fromfeed = []
     feedwords = 0
+    fromfeedsentence = []
+    feedsentenceamount = 0
+    feedsentencewords = []
     currentword = ""
     if "Occurances" in data.keys():
         pos = "NextWord"
@@ -303,6 +306,14 @@ def word(data, feed, ignorelast=0):
         pos = "FirstWord"
         selection = randint(1,data["TotalFirstWords"])
         items = data["FirstWords"].items()
+    if feed:
+        for sentence, v in TextInput.data["Sentences"]:
+            for word in sentence.lower().split():
+                if word in feed:
+                    for word in sentence.lower().split():
+                        feedsentencewords.append(word)
+                    break
+                
     for w, c in items:
         if w!="Occurances":
             current+=c
@@ -316,13 +327,18 @@ def word(data, feed, ignorelast=0):
             if w in feed:
                 fromfeed.append((w,c))
                 feedwords+=c
+            if w in feedsentencewords:
+                fromfeedsentence.append((w,c))
+                feedsentenceamount+=c
     if fromfeed and randint(1,100)<int(settings.findValue("FeedIn"+pos)):
-        selection = randint(1,feedwords)
         currentword = entryfromlist(fromfeed, feedwords)
-        print(currentword+" from feed")
+        #print(pos+" from feed")
+    elif fromfeedsentence and randint(1,100)<int(settings.findValue("FeedInNextWord")):
+        currentword = entryfromlist(fromfeedsentence, feedsentenceamount)
+        #print(pos+" from sentence with feed")
     return currentword
 
-def thirdword(sentences, words):
+def thirdword(sentences, words, feed):
     entries = []
     total = 0
     length = len(words)
@@ -332,6 +348,10 @@ def thirdword(sentences, words):
             try:
                 cont = s[s.find(words)+len(words):]
                 if cont.strip().split()[0] in s.split():
+                    for w in s.lower().split():
+                        if w in feed:
+                            c*=int(int(settings.findValue("FeedInNextWord"))*0.05)
+                            #print("Found sentence with feed words")
                     entries.append((cont.strip().split()[0], c))
                     total+=c
             except IndexError:
@@ -363,12 +383,13 @@ def newGenerateSentence(feed=[]):
     contmod = int(settings.findValue("msgContinuationModifier"))
     lengthmax = int(settings.findValue("maxMessageLength"))
     while(currentword and len(output)<lengthmax):
-        if currentword in feed:
-            feed.remove(currentword)
+        if currentword.lower() in feed:
+            feed.remove(currentword.lower())
+            print(currentword+" from feed")
         try:
             temp = ""
             if output.strip()!=currentword and randint(1,100) < sentchance:
-                temp = thirdword(data["Sentences"], output.strip())
+                temp = thirdword(data["Sentences"], output.strip(), feed)
                 if temp and temp not in usedwords:
                     if temp=="LastWord":
                         print("Third word was final")
