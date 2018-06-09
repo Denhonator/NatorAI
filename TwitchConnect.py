@@ -2,9 +2,9 @@ import socket
 import time
 import threading
 from threading import Thread
+import SettingsAndPreferences as settings
 import TextInput as AI
 import GenerateSentences as speak
-import SettingsAndPreferences as settings
 import TwitchAPI as api
 from tkinter import *
 from tkinter import scrolledtext
@@ -224,9 +224,14 @@ class getInput(Thread):
         sets = Listbox(self.window,height=22)
         sets.bind('<<ListboxSelect>>', onselect)
         self.entryamount=0
+        for w in settings.settings.keys():  #sort commands to the end of the list
+            if w[0]!="!":
+                self.entryamount+=1
+                sets.insert(self.entryamount, w)
         for w in settings.settings.keys():
-            self.entryamount+=1
-            sets.insert(self.entryamount, w)
+            if w[0]=="!":
+                self.entryamount+=1
+                sets.insert(self.entryamount, w)
         sets.grid(column=1,row=0,rowspan=6)
         try:
             self.window.mainloop()

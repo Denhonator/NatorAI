@@ -65,10 +65,18 @@ def load(file):
         print(folder+"/"+file+" does not exist")
 
 def loadall():
+    settings["approved"] = []
     load("approved users.txt")
+    
+    settings["ignore"] = []
     load("ignore list.txt")
+    
+    settings["whitelist"] = []
     load("whitelist.txt")
+    
+    settings["word"] = []
     load("word ignore list.txt")
+    
     load("settings and commands.txt")
 
 loadall()
@@ -128,3 +136,6 @@ def userlist(filename, add=None):
 
 def commandList(add=None, reply=None):
     return findValue(add)
+
+for s in use:
+    findValue(s)
