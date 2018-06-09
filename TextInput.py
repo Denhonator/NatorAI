@@ -38,7 +38,7 @@ def add(sentence):
     data["TotalSentences"]=data.get("TotalSentences",0)+1
     for s, c in data["Sentences"]:
         s=s.replace("\\xe2\\x80\\x99","'")
-        if s.count('\\')>4 and s.count('x')>4:
+        if s.count('\\')>3 and s.count('x')>3:
             print("Ignored sentence due to weird symbols")
             continue
         if sentence.lower().strip()==s:
@@ -57,6 +57,9 @@ def save():
     count = 0
     for s, c in data["Sentences"]:
         s=s.replace("\\xe2\\x80\\x99","'")
+        if s.count('\\')>3 and s.count('x')>3:
+            print("Ignored sentence due to weird symbols")
+            continue
         if s[-1]==",":
             output+=s+" "
         elif output[-1]==" ":
