@@ -7,42 +7,33 @@ folder = settings.folder
 data = {"Sentences": []}
 
 def load():
-    sentences = []
     count = 0
     try:
         f = open(folder+"/sentences2.txt", "r")
         for line in f.readlines():
             try:
                 (s, c) = line.split(" -- ")
-                for word in settings.settings["word"] + settings.settings["call"]:
-                    if word.lower() in s.lower():
-                        print("Didn't load sentence '"+s+"' due to ignored word")
-                        s=""
                 if(s and s!="TotalAmountOfSentences"):                   
-                    sentences.append((s.replace("\\'","'"),int(c.strip())))
+                    for i in range(int(c)):
+                        add(s)
                     count+=int(c.strip())
             except ValueError:
                 pass
     except IOError:
         print("Couldn't load "+folder+"/sentences2.txt")
-    data["Sentences"] = sentences
     data["TotalSentences"] = count
     print("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences")
 
 def add(sentence):
-    for word in settings.settings["word"] + settings.settings["call"]:
-        if word.lower() in sentence.lower():
-            print("Ignored sentence '"+sentence+"' due to ignored word")
-            return
+    print(sentence)
+    sentence = sentence.replace("\\xe2\\x80\\x99","'").replace("\\'","'").strip()
+    if ignoresentence(sentence):
+        return
     added = False
     sentences = []
     data["TotalSentences"]=data.get("TotalSentences",0)+1
     for s, c in data["Sentences"]:
-        s=s.replace("\\xe2\\x80\\x99","'")
-        if s.count('\\')>3 and s.count('x')>3:
-            print("Ignored sentence due to weird symbols")
-            continue
-        if sentence.lower().strip()==s:
+        if sentence==s:
             c+=1
             added = True
         sentences.append((s,c))
@@ -51,6 +42,18 @@ def add(sentence):
     data["Sentences"] = sentences
     firstwords([(sentence, 1)])
     nextwords([(sentence, 1)])
+
+def ignoresentence(sentence):
+    for word in settings.settings["word"] + settings.settings["call"]:
+        if word.lower() in sentence.lower():
+            print("Ignored sentence '"+sentence+"' due to ignored word")
+            return True
+    if sentence.count('\\')>3 and sentence.count('x')>3:
+        print("Ignored sentence due to weird symbols")
+        return True
+    if sentence[0]=="!" and len(sentence.split())==1:   #Ignore command usage
+        return True
+    return False
 
 def save():
     f = open(folder+"/sentences2.txt", "w")
