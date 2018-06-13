@@ -392,7 +392,7 @@ def newGenerateSentence(feed=[]):
                 temp = thirdword(data["Sentences"], output.strip(), feed)
                 if temp and temp not in usedwords:
                     if temp=="LastWord":
-                        print("Third word was final")
+                        #print("Third word was final")
                         break
                     currentword = temp
                     if word(data["NextWords"][currentword.lower()], feed, lengthmod*20-len(output))=="LastWord":
