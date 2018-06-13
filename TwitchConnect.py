@@ -382,7 +382,7 @@ while True:
                 print(line)
                 message = ""
                 print("Not a usual message, ignoring")
-
+                
             msginfo = parseMessage(parts)
             username = msginfo.get("display-name","").lower()
             if not username:
@@ -405,12 +405,13 @@ while True:
                         subChecker.setName('Sub message')
                         subChecker.start()               
 
-            if "PRIVMSG" not in parts[1] and message:
-                print("Non PRIVMSG message: "+message)
-
             if not message:
                 print(line)
                 continue
+
+            if "PRIVMSG" not in parts[1] and message:
+                print("Non PRIVMSG message: "+message)
+
             #print(username+": "+message)
             
             #update settings
