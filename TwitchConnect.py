@@ -43,9 +43,9 @@ def connectToTwitch():
     s.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
     s.send(bytes("JOIN #" + JOIN + " \r\n", "UTF-8"))
     while True:
-        line = str(s.recv(1024))
+        line = (s.recv(1024)).decode("utf-8","replace")
         for text in line.split('\\r\\n'):
-            if len(text)>1:
+            if text:
                 print(text)
         if "End of /NAMES list" in line:
             global go
@@ -111,6 +111,7 @@ class getInput(Thread):
         def save():     
             AI.save()
             txt.insert(INSERT,'Saved AI!\n')
+            txt.see("end")
         def saveset():
             if entry.get() and entry.get()!="-":
                 print("Updating "+self.key+str(self.index)+" with "+entry.get())
@@ -132,9 +133,9 @@ class getInput(Thread):
                 time.sleep(0.1)
                 timeout+=0.1
             if timeout<3:
-                txt.insert(INSERT, "Connected!")
+                txt.insert(INSERT, "Connected!\n")
             else:
-                txt.insert(INSERT, "Failed to connect")
+                txt.insert(INSERT, "Failed to connect\n")
             txt.see("end")
         def addentry():
             self.entryamount
@@ -348,8 +349,8 @@ message = ""
 
 while True:
     try:
-        for line in str(s.recv(1024)).split('\\r\\n'):
-            if line=="b''":
+        for line in (s.recv(1024)).decode("utf-8","replace").split('\\r\\n'):
+            if not line:
                 ohno+=1
                 if ohno > 10:
                     s.shutdown(socket.SHUT_WR)
@@ -361,11 +362,9 @@ while True:
                     break
             else:
                 ohno=0
-            if line.find("PING")!=-1:
-                print("PING")
-            if line.find("PING")==2:    #making sure ping pong works
+            if line.split()[0]=="PING":
                 s.send(bytes("PONG\r\n", "UTF-8"))
-                print("PONG")
+                print("PING PONG")
                 continue
             if len(line)<5:
                 continue
@@ -404,6 +403,7 @@ while True:
 
             if not message:
                 continue
+            print(username+": "+message)
             
             #update settings
             cooldown = int(settings.findValue("cooldown"))
@@ -422,11 +422,10 @@ while True:
                     
             #commands
             try:
-                if message.split()[0]=="!save" and username in settings.userlist("whitelist.txt"):
-                    AI.save()
-                elif message[0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
+                if message[0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) \
+                                       or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
                     if len(message.strip().split())>1:
-                        reply = settings.commandList(message.strip().split()[0], message[message.find(" ")+1:])
+                        reply = settings.commandList(message.strip().split()[0], message.split(" ", 1)[1])
                     else:
                         reply = settings.commandList(message.split()[0])
                     if reply!="30":
@@ -438,13 +437,12 @@ while True:
             #talking
             if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfReply) > autoCooldown):
                 if (abs(time.clock()-timeOfReply)>cooldown and approved) or abs(time.clock()-timeOfReply)>longerCooldown:
-                    if (prefix=="30" and username!=NICK) or (prefix!="30" and message.find(prefix)!=0):    #don't reply to yourself
-                        if messageGenThread.is_alive():
-                            print("Skipping because generating another message")
-                        else:
-                            timeOfReply = time.clock()
-                            messageGenThread = GenerateMessage(message)
-                            messageGenThread.start()
+                    if messageGenThread.is_alive():
+                        print("Skipping because generating another message")
+                    else:
+                        timeOfReply = time.clock()
+                        messageGenThread = GenerateMessage(message)
+                        messageGenThread.start()
                     
     except socket.timeout:
         autoCooldown = int(settings.findValue("autoCooldown"))

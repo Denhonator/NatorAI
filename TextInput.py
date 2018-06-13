@@ -4,12 +4,12 @@ import GenerateSentences  as speak
 import SettingsAndPreferences as settings
 
 folder = settings.folder
-data = {"Sentences": []}
+data = {"Sentences": [], "Definitions": {}}
 
 def load():
     count = 0
     try:
-        f = open(folder+"/sentences2.txt", "r")
+        f = open(folder+"/sentences2.txt", encoding='utf-8', mode='r')
         for line in f.readlines():
             try:
                 (s, c) = line.split(" -- ")
@@ -25,8 +25,8 @@ def load():
     print("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences")
 
 def add(sentence):
-    print(sentence)
-    sentence = sentence.replace("\\xe2\\x80\\x99","'").replace("\\'","'").strip()
+    #print(sentence)
+    sentence = sentence.strip()
     if ignoresentence(sentence):
         return
     added = False
@@ -48,22 +48,16 @@ def ignoresentence(sentence):
         if word.lower() in sentence.lower():
             print("Ignored sentence '"+sentence+"' due to ignored word")
             return True
-    if sentence.count('\\')>3 and sentence.count('x')>3:
-        print("Ignored sentence due to weird symbols")
-        return True
     if sentence[0]=="!" and len(sentence.split())==1:   #Ignore command usage
+        print("Ignored learning message with command '"+sentence)
         return True
     return False
 
 def save():
-    f = open(folder+"/sentences2.txt", "w")
+    f = open(folder+"/sentences2.txt", encoding='utf-8', mode='w')
     output="TotalAmountOfSentences -- "+str(data["TotalSentences"])+"\n"
     count = 0
     for s, c in data["Sentences"]:
-        s=s.replace("\\xe2\\x80\\x99","'")
-        if s.count('\\')>3 and s.count('x')>3:
-            print("Ignored sentence due to weird symbols")
-            continue
         if s[-1]==",":
             output+=s+" "
         elif output[-1]==" ":

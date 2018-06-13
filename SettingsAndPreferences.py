@@ -41,7 +41,7 @@ use = ["NICK",
 
 def load(file):
     try:
-        f = open(folder+"/"+file, "r")
+        f = open(folder+"/"+file, encoding='utf-8', mode='r')
         for line in f.readlines():
             try:
                 (w, s) = line.split(" ", 1)
@@ -91,18 +91,14 @@ def save(file):
                     for e in s:
                         output+=w+" "+e+"\n"
         else:
-            for v in settings[key]:
+            for v in settings.get(key, []):
                 output+=v+"\n"
-        if output:
-            f = open(folder+"/"+file, "w")
-            f.write(output.strip())
-            f.close()
     except KeyError:
-        pass
-    if not output:
-        print("Nothing to save to "+file)
-    else:
-        print("Saved to "+file)
+        print("Key error with "+file)
+    f = open(folder+"/"+file, encoding='utf-8', mode='w')
+    f.write(output.strip())
+    f.close()
+    print("Saved to "+file)
 
 def saveall():
     save("approved users.txt")
@@ -135,7 +131,7 @@ def userlist(filename, add=None):
         return []
 
 def commandList(add=None, reply=None):
-    return findValue(add)
+    return findValue(add, reply)
 
 for s in use:
     findValue(s)
