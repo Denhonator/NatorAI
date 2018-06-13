@@ -284,7 +284,7 @@ class GenerateMessage(Thread):
             #print("No feed")
             feed = []
         reply = speak.newGenerateSentence(feed)
-        print("GENERATED MESSAGE: " + reply)
+        #print("GENERATED MESSAGE: " + reply)
         send_message(reply)
 
 class SubWatch(Thread):
@@ -369,19 +369,7 @@ message = ""
 while True:
     try:
         for line in (s.recv(1024)).decode("utf-8","replace").split('\\r\\n'):
-            if not line:
-                ohno+=1
-                if ohno > 10:
-                    s.shutdown(socket.SHUT_WR)
-                    s.close()
-                    print("Disconnected")
-                    connectToTwitch()
-                    print("Reconnected hopefully")
-                    ohno=0
-                    break
-            else:
-                ohno=0
-            if line.split()[0]=="PING":
+            if "PING" in line:
                 s.send(bytes("PONG\r\n", "UTF-8"))
                 print("PING PONG")
                 continue
@@ -421,8 +409,9 @@ while True:
                 print("Non PRIVMSG message: "+message)
 
             if not message:
+                print(line)
                 continue
-            print(username+": "+message)
+            #print(username+": "+message)
             
             #update settings
             cooldown = int(settings.findValue("cooldown"))
@@ -472,3 +461,9 @@ while True:
                 timeOfReply = time.clock()
                 messageGenThread = GenerateMessage()
                 messageGenThread.start()
+    except ConnectionResetError:
+        s.shutdown(socket.SHUT_WR)
+        s.close()
+        print("Trying to reconnect")
+        connectToTwitch()
+        print("Reconnected hopefully")
