@@ -137,12 +137,53 @@ class getInput(Thread):
             else:
                 txt.insert(INSERT, "Failed to connect\n")
             txt.see("end")
+
+        def buildsets():
+            self.entryamount=0
+            first = False
+            if not sets.size():
+                first = True
+            sets.delete(0,sets.size())
+            for w in settings.settings.keys():  #sort commands to the end of the list
+                if w[0]!="!":
+                    sets.insert(self.entryamount, w)
+                    self.entryamount+=1
+            for w in settings.settings.keys():
+                if w[0]=="!":
+                    sets.insert(self.entryamount, w)
+                    self.entryamount+=1
+            index = 0
+            if not first:
+                index = max(self.entryamount-1,0)
+                sets.see("end")
+            sets.select_set(index)
+            onselect(None, index)
+                    
         def addentry():
-            self.entryamount
             name = newentry.get()
             settings.settings[name] = ["EditMe"]
             sets.insert(self.entryamount, name)
-        def onselect(evt):
+            self.entryamount+=1
+            sets.select_set(self.entryamount-1)
+            onselect(None, self.entryamount-1)
+            sets.see("end")
+            
+        def entriesupdate():
+            entry.delete(0,len(entry.get()))
+            entries.delete(0,entries.size()-1)
+            if not settings.settings.get(self.key, None):
+                return
+            loop=0
+            for e in settings.settings[self.key]:
+                loop+=1
+                entries.insert(loop, e)
+            entries.insert(loop+1, "new")
+            try:
+                entry.insert(INSERT,settings.settings[self.key][self.index])
+            except IndexError:
+                entry.insert(INSERT,"-")
+
+        def entryupdate():
             if entry.get() and entry.get()!="-":
                 print("Updating "+self.key+str(self.index)+" with "+entry.get())
                 try:
@@ -153,47 +194,33 @@ class getInput(Thread):
                 print("Removing "+self.key+str(self.index))
                 try:
                     del settings.settings[self.key][self.index]
-                except IndexError:
-                    print("Nothing to delete")
+                    if not settings.settings[self.key]:
+                        del settings.settings[self.key]
+                        buildsets()
+                except (IndexError, KeyError) as e:
+                    print("Nothing to delete at this point")
+                    
+        def onselect(evt, index=0):
+            entryupdate()
             try:
-                index = int(evt.widget.curselection()[0])
-                entry.delete(0,len(entry.get()))    #On select, (not select out)
-                entries.delete(1,entries.size()-1)
-                loop=0
-                self.key = evt.widget.get(index)
-                for e in settings.settings[self.key]:
-                    loop+=1
-                    entries.insert(loop, str(loop))
-                entries.select_set(0)
-                entries.event_generate("<<ListboxSelect>>")
+                if not index:
+                    index = sets.curselection()[0]
+                self.key = sets.get(index)
+                entriesupdate()
                 message = self.description.get(self.key, "")
                 if message:
                     txt.insert(INSERT, message+"\n\n")
                 txt.see("end")
+                entries.select_set(0)
             except IndexError:
                 pass
                 
         def subselect(evt):
-            if entry.get() and entry.get()!="-":
-                print("Updating "+self.key+str(self.index)+" with "+entry.get())
-                try:
-                    settings.settings[self.key][self.index]=entry.get()
-                except IndexError:
-                    settings.settings[self.key].append(entry.get())
-            elif entry.get():
-                print("Removing "+self.key+str(self.index))
-                try:
-                    del settings.settings[self.key][self.index]
-                except IndexError:
-                    print("Nothing to delete")
+            entryupdate()
             try:
-                subindex = int(evt.widget.curselection()[0])
-                self.index = subindex
-                entry.delete(0,len(entry.get()))
-                try:
-                    entry.insert(INSERT,settings.settings[self.key][subindex])
-                except IndexError:
-                    entry.insert(INSERT,"-")
+                self.index = entries.curselection()[0]
+                entriesupdate()
+                entries.select_set(self.index)
             except IndexError as e:
                 pass
             
@@ -218,21 +245,13 @@ class getInput(Thread):
         newentry.grid(row=6, column=1)
         add = Button(self.window, text="Add", command=addentry, height=1, width=5)
         add.grid(row=6, column=2, sticky=W)
-        entries = Listbox(self.window,height=5)
+        entries = Listbox(self.window,height=9)
         entries.bind('<<ListboxSelect>>',subselect)
-        entries.insert(0, "0")
+        #entries.insert(0, "0")
         entries.grid(column=2,row=0)
         sets = Listbox(self.window,height=22)
         sets.bind('<<ListboxSelect>>', onselect)
-        self.entryamount=0
-        for w in settings.settings.keys():  #sort commands to the end of the list
-            if w[0]!="!":
-                self.entryamount+=1
-                sets.insert(self.entryamount, w)
-        for w in settings.settings.keys():
-            if w[0]=="!":
-                self.entryamount+=1
-                sets.insert(self.entryamount, w)
+        buildsets()
         sets.grid(column=1,row=0,rowspan=6)
         try:
             self.window.mainloop()

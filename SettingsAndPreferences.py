@@ -126,7 +126,7 @@ def findValue(setting, value=None):
 def userlist(filename, add=None):
     key = filename.split()[0].replace(".txt","")
     try:
-        return settings[key]
+        return [name.lower() for name in settings[key]]
     except KeyError:
         return []
 
