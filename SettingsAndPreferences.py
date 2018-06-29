@@ -18,7 +18,9 @@ use = ["NICK",
     "cooldown",
     "longerCooldown",
     "autoCooldown",
+    "commandCooldown",
     "call",
+    "printLevel",
     "FeedInFirstWord",
     "FeedInNextWord",
     "msgLengthModifier",
@@ -29,6 +31,7 @@ use = ["NICK",
     "SpamLimit",
     "enableLearning",
     "enableTalking",
+    "autosave",
     "APIOauth",
     "ClientID",
     "FollowCheckCooldown",
@@ -132,6 +135,17 @@ def userlist(filename, add=None):
 
 def commandList(add=None, reply=None):
     return findValue(add, reply)
+
+def levelprint(text, level):
+    try:
+        if str(level) in findValue("printLevel"):
+            print(text)
+    except Exception as e:
+        for c in text:
+            try:
+                print(c, end='')
+            except:
+                print("?", end='')
 
 for s in use:
     findValue(s)

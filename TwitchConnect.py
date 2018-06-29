@@ -63,7 +63,7 @@ class AddWords(Thread):
         if self.message:
             AI.add(self.message)
         else:
-            print("No words received")
+            settings.levelprint("No words received", 4)
 
 class getInput(Thread):
     def __init__(self):
@@ -80,9 +80,12 @@ class getInput(Thread):
                             "SENDTO": "Channel to send messages to",
                             "oauth": "IRC oauth token for the bot's account",
                             "MessagePrefix": "Characters at the start of every message the bot sends",
+                            "printLevel": "Add 0 for basic info, 1 for generated messages, 2 for its debug, 3 for learning info, 4 for its debug,"+
+                            " 5 for UI debug, 6 for general debug. For example: 013 or 0123456",
                             "cooldown": "Bot call cooldown for subs and approved users",
                             "longerCooldown": "Bot call cooldown for other users",
                             "autoCooldown": "Time after which the bot will send a message on its own",
+                            "commandCooldown": "Cooldown for using commands for all users",
                             "call": "Characters used to provoke a random message from the bot. Following words will be used as feed",
                             "FeedInFirstWord": "Chance to start a message with a word from given feed",
                             "FeedInNextWord": "Chance to use a word from given feed in a next word",
@@ -94,6 +97,7 @@ class getInput(Thread):
                             "SpamLimit": "Limit to how many times a word can be repeated. Mainly to avoid potential emote spamming",
                             "enableLearning": "Allow the AI to learn from twitch chat (0,1)",
                             "enableTalking": "Allow the AI to generate and send messages to twitch chat (0,1)",
+                            "autosave": "Enable autosave for AI and settings every time Twitch pings the bot (0,1)",
                             "APIOauth": "Twitch API oauth token, used for checking for follows. Connected to ClientID",
                             "ClientID": "ClientID from your created twitch app for the bot",
                             "FollowCheckCooldown": "How often in seconds followers will be checked",
@@ -114,7 +118,7 @@ class getInput(Thread):
             txt.see("end")
         def saveset():
             if entry.get() and entry.get()!="-":
-                print("Updating "+self.key+str(self.index)+" with "+entry.get())
+                settings.levelprint("Updating "+self.key+str(self.index)+" with "+entry.get(), 5)
                 try:
                     settings.settings[self.key][self.index]=entry.get()
                 except IndexError:
@@ -185,20 +189,20 @@ class getInput(Thread):
 
         def entryupdate():
             if entry.get() and entry.get()!="-":
-                print("Updating "+self.key+str(self.index)+" with "+entry.get())
+                settings.levelprint("Updating "+self.key+str(self.index)+" with "+entry.get(), 5)
                 try:
                     settings.settings[self.key][self.index]=entry.get()
                 except IndexError:
                     settings.settings[self.key].append(entry.get())
             elif entry.get():
-                print("Removing "+self.key+str(self.index))
+                settings.levelprint("Removing "+self.key+str(self.index), 5)
                 try:
                     del settings.settings[self.key][self.index]
                     if not settings.settings[self.key]:
                         del settings.settings[self.key]
                         buildsets()
                 except (IndexError, KeyError) as e:
-                    print("Nothing to delete at this point")
+                    settings.levelprint("Nothing to delete at this point", 5)
                     
         def onselect(evt, index=0):
             entryupdate()
@@ -278,14 +282,12 @@ class GenerateMessage(Thread):
                 if feed[0]=="":
                     feed = []
             except:
-                #print("No feed")
-                feed = []
+                feed = self.message.lower().strip().split()
         else:
-            #print("No feed")
             feed = []
         reply = speak.newGenerateSentence(feed)
-        #print("GENERATED MESSAGE: " + reply)
         send_message(reply)
+        settings.levelprint("GENERATED MESSAGE: " + reply, 1)
 
 class SubWatch(Thread):
     def __init__(self, user, months=0):
@@ -306,8 +308,8 @@ class SubWatch(Thread):
             if subreply.find("()")>-1:
                 gen = speak.newGenerateSentence(feed)
             reply=subreply.replace("{}", "@"+self.user).replace("[]", self.months).replace("()", gen).strip()
-            print("SUB REPLY: " + reply)
             send_message(reply)
+            settings.levelprint("SUB REPLY: " + reply, 1)
 
 class FollowWatch(Thread):
     def __init__(self):
@@ -329,12 +331,12 @@ class FollowWatch(Thread):
                     if followreply.find("()")>-1:
                         gen = speak.newGenerateSentence(feed)
                     reply=followreply.replace("{}", "@"+api.followers()[0]).replace("()", gen).strip()
-                    print("FOLLOW REPLY: " + reply)
                     send_message(reply)
+                    settings.levelprint("FOLLOW REPLY: " + reply, 1)
                 self.followers = self.followers2
             except Exception as e:
-                print("Couldn't update follower count")
-                print(e)
+                settings.levelprint("Couldn't update follower count", 0)
+                settings.levelprint(e, 0)
             time.sleep(int(settings.findValue("FollowCheckCooldown")))
 
 getinput = getInput()
@@ -350,6 +352,7 @@ print("Talking set to "+settings.findValue("enableTalking"))
 print("Learning set to "+settings.findValue("enableLearning"))
 ohno = 0
 timeOfReply = 0
+timeOfCommand = 0
 s.settimeout(10)
 
 wordAddingThread = AddWords()
@@ -371,7 +374,10 @@ while True:
         for line in (s.recv(1024)).decode("utf-8","replace").split('\\r\\n'):
             if "PING" in line:
                 s.send(bytes("PONG\r\n", "UTF-8"))
-                print("PING PONG")
+                settings.levelprint("PING PONG", 0)
+                if settings.findValue("autosave")=="1":
+                    AI.save()
+                    settings.saveall()
                 continue
             if len(line)<5:
                 continue
@@ -379,24 +385,24 @@ while True:
             if len(parts) > 2:
                 message = parts[2].strip()
             else:
-                print(line)
+                settings.levelprint(line, 0)
                 message = ""
-                print("Not a usual message, ignoring")
+                settings.levelprint("Not a usual message, ignoring", 0)
                 
             msginfo = parseMessage(parts)
             username = msginfo.get("display-name","").lower()
             if not username:
-                print("No display-name found")
+                settings.levelprint("No display-name found", 6)
                 
             approved = False
             if msginfo.get("subscriber","0")!="0":
                 approved = True
-                #print(username+" is a subscriber!")
+                settings.levelprint(username+" is a subscriber!", 6)
             elif username in settings.userlist("approved users.txt"):
                 approved = True
 
             if msginfo.get("msg-id", ""):
-                print(msginfo["msg-id"]+" happened!")
+                settings.levelprint(msginfo["msg-id"]+" happened!", 6)
                 msgid = msginfo["msg-id"]
                 if msgid=="sub" or msgid=="resub":
                     if settings.findValue("enableTalking")=="1":
@@ -406,13 +412,13 @@ while True:
                         subChecker.start()               
 
             if not message:
-                print(line)
+                settings.levelprint(line, 6)
                 continue
 
             if "PRIVMSG" not in parts[1] and message:
-                print("Non PRIVMSG message: "+message)
+                settings.levelprint("Non PRIVMSG message: "+message, 6)
 
-            #print(username+": "+message)
+            settings.levelprint(username+": "+message, 3)
             
             #update settings
             cooldown = int(settings.findValue("cooldown"))
@@ -424,47 +430,54 @@ while True:
             if not username in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
                 if (prefix=="30" and username!=NICK) or (prefix!="30" and message.find(prefix)!=0):
                     if wordAddingThread.is_alive():
-                        print("Skipping because adding previous words")
+                        settings.levelprint("Skipping because adding previous words", 6)
                     else:
                         wordAddingThread = AddWords(message)
                         wordAddingThread.start()
                     
             #commands
             try:
-                if message[0]=='!' and (len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) \
-                                       or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1)):
+                if message[0]=='!' and ((len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) \
+                                       and abs(time.clock()-timeOfCommand > int(settings.findValue("commandCooldown")))
+                                       or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1))):
                     if len(message.strip().split())>1:
                         reply = settings.commandList(message.strip().split()[0], message.split(" ", 1)[1])
                     else:
                         reply = settings.commandList(message.split()[0])
                     if reply!="30":
-                        print("COMMAND RESPONSE: " + reply)
+                        settings.levelprint("COMMAND RESPONSE: " + reply, 1)
                         send_message(reply)
+                        timeOfCommand = time.clock()
             except IndexError:
-                print(message+" caused index error")
+                settings.levelprint(message+" caused index error", 6)
                 
             #talking
             if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfReply) > autoCooldown):
                 if (abs(time.clock()-timeOfReply)>cooldown and approved) or abs(time.clock()-timeOfReply)>longerCooldown:
                     if messageGenThread.is_alive():
-                        print("Skipping because generating another message")
+                        settings.levelprint("Skipping because generating another message", 6)
                     else:
                         timeOfReply = time.clock()
                         messageGenThread = GenerateMessage(message)
+                        message = ""
                         messageGenThread.start()
                     
     except socket.timeout:
         autoCooldown = int(settings.findValue("autoCooldown"))
         if settings.findValue("enableTalking")=="1" and abs(time.clock()-timeOfReply) > autoCooldown:
             if messageGenThread.is_alive():
-                print("Skipping because generating another message")
+                settings.levelprint("Skipping because generating another message", 6)
             else:
-                timeOfReply = time.clock()
-                messageGenThread = GenerateMessage()
+                timeOfReply = time.clock()-min(3, int(settings.findValue("autoCooldown"))-3)
+                if message:
+                    messageGenThread = GenerateMessage()
+                    message = ""
+                else:
+                    messageGenThread = GenerateMessage()
                 messageGenThread.start()
     except ConnectionResetError:
         s.shutdown(socket.SHUT_WR)
         s.close()
-        print("Trying to reconnect")
+        settings.levelprint("Trying to reconnect", 0)
         connectToTwitch()
-        print("Reconnected hopefully")
+        settings.levelprint("Reconnected hopefully", 0)
