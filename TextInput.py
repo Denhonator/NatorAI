@@ -5,24 +5,39 @@ import SettingsAndPreferences as settings
 
 folder = settings.folder
 data = {"Sentences": [], "Definitions": {}}
+progress = 0
 
 def load():
     count = 0
+    total = 0
+    global progress
     try:
         f = open(folder+"/sentences2.txt", encoding='utf-8', mode='r')
         for line in f.readlines():
             try:
                 (s, c) = line.split(" -- ")
-                if(s and s!="TotalAmountOfSentences"):                   
+                if s and s!="TotalAmountOfSentences":                   
                     for i in range(int(c)):
                         add(s)
-                    count+=int(c.strip())
+                    count+=int(c)
+                elif s:
+                    total = int(c)
             except ValueError:
                 pass
+            if count and int(100*count/total)>progress:
+                progress+=1
+                print("Loading sentences2.txt... "+str(progress)+"%", end="\r")
     except IOError:
-        print("Couldn't load "+folder+"/sentences2.txt")
+        settings.levelprint("Couldn't load "+folder+"/sentences2.txt", 0)
     data["TotalSentences"] = count
-    print("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences")
+    settings.levelprint("\nLearning from data...", 0)
+    firstwords(data["Sentences"])
+    nextwords(data["Sentences"])
+    settings.levelprint("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences", 0)
+    settings.levelprint("Creating backup", 0)
+    save(".backup")
+    if progress and progress<100:
+        progress = 100
 
 def add(sentence):
     #print(sentence)
@@ -53,8 +68,12 @@ def ignoresentence(sentence):
         return True
     return False
 
-def save():
-    f = open(folder+"/sentences2.txt", encoding='utf-8', mode='w')
+def save(backup=""):
+    if progress<100 or data["TotalSentences"]==0:
+        print(str(progress)+", "+str(data["TotalSentences"]))
+        settings.levelprint("Not ready to save",0)
+        return
+    f = open(folder+"/sentences2.txt"+backup, encoding='utf-8', mode='w')
     output="TotalAmountOfSentences -- "+str(data["TotalSentences"])+"\n"
     count = 0
     for s, c in data["Sentences"]:
@@ -114,7 +133,3 @@ def nextwords(sentences):
             count+=c
     data["NextWords"] = words
     settings.levelprint("Added "+str(count)+" entries to NextWords", 4)
-
-load()
-firstwords(data["Sentences"])
-nextwords(data["Sentences"])

@@ -1,2 +1,2 @@
-Add everything to UI
-Replace the rest of the direct reading from file with loading to RAM
+Message preloading
+Custom continuation

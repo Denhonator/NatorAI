@@ -116,7 +116,7 @@ def capitalization(data, message):
     return output.strip()
 
 def newGenerateSentence(feed=[]):
-    settings.levelprint(feed, 2)
+    settings.levelprint(feed, 1)
     data = TextInput.data
     currentword = word(data, feed)
     output = currentword+" "
