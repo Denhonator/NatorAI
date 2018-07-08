@@ -133,7 +133,7 @@ def findPregen(feed):
         match = 0
         for w in feed:
             if w.lower() in msg.lower().split():
-                match+=max(4, match*4)
+                match+=max(20, match*20)
         if match:
             total+=match
             matches.append((msg, match))

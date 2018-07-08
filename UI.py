@@ -26,8 +26,8 @@ class getInput(Thread):
                             "printLevel": "Add 0 for basic info, 1 for generated messages, 2 for its debug, 3 for learning info, 4 for its debug,"+
                             " 5 for UI debug, 6 for general debug. For example: 013 or 0123456",
                             "PregenAmount": "How many messages are pre-generated in memory at a time. Must be at least 100 to be active, recommended max 10000",
-                            "PregenStartupSpeed": "Reduce startup CPU usage by lowering this value (1-10)",
-                            "PregenRefreshSpeed": "Frequency at which oldest pre-generated message is removed and a new one is generated (1-10)",
+                            "PregenStartupSpeed": "Reduce startup CPU usage by lowering this value (1-100)",
+                            "PregenRefreshSpeed": "Frequency at which oldest pre-generated message is removed and a new one is generated (1-100)",
                             "cooldown": "Bot call cooldown for subs and approved users",
                             "longerCooldown": "Bot call cooldown for other users",
                             "autoCooldown": "Time after which the bot will send a message on its own",
