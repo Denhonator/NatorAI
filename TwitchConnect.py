@@ -54,7 +54,7 @@ class AddWords(Thread):
         self.message = message
 
     def run(self):
-        if messageGenThread.is_alive():
+        if messageGenThread.isAlive():
             messageGenThread.join()
         if self.message:
             if self.message==1:
@@ -70,9 +70,27 @@ class GenerateMessage(Thread):
         self.message = message
 
     def run(self):
-        if wordAddingThread.is_alive():
+        if wordAddingThread.isAlive():
             wordAddingThread.join()
         if self.message:
+            #pregen
+            if self.message==1:
+                pregenAmount = int(settings.findValue("PregenAmount"))
+                pregenStart = 1-(0.1*min(max(int(settings.findValue("PregenStartupSpeed")),1),10))
+                pregenRefresh = (10.0/(min(max(int(settings.findValue("PregenRefreshSpeed")),1),10))-0.9)
+                if pregenAmount>99:
+                    progress = 0
+                    while self.message==1:
+                        if len(speak.pregen)>=pregenAmount:
+                            del speak.pregen[0]
+                            time.sleep(pregenRefresh)
+                        else:
+                            time.sleep(pregenStart)
+                        speak.pregen.append(speak.newGenerateSentence())
+                        if 100*len(speak.pregen)/pregenAmount>progress:
+                            progress+=1
+                            print("Pre-generating... "+str(progress)+"%", end="\r")
+                return
             try:
                 feed = self.message.lower().split(settings.findValue("call"))[1].strip().split()
                 if feed[0]=="":
@@ -81,9 +99,13 @@ class GenerateMessage(Thread):
                 feed = self.message.lower().strip().split()
         else:
             feed = []
-        reply = speak.newGenerateSentence(feed)
+        if speak.pregen:
+            reply = speak.findPregen(feed)
+        if not reply:
+            reply = speak.newGenerateSentence(feed)
         send_message(reply)
         settings.levelprint("GENERATED MESSAGE: " + reply, 1)
+        speak.pregen.remove(reply)
 
 class SubWatch(Thread):
     def __init__(self, user, months=0):
@@ -138,12 +160,17 @@ class FollowWatch(Thread):
 getinput = UI.getInput()
 getinput.start()
 
+wordAddingThread = AddWords(1)
+wordAddingThread.setName('Word adding')
+
+messagePreGen = GenerateMessage(1)
+messagePreGen.setName('Message pre-generation')
+
 messageGenThread = GenerateMessage()
 messageGenThread.setName('Message generation')
 
-wordAddingThread = AddWords(1)
-wordAddingThread.setName('Word adding')
 wordAddingThread.start()
+messagePreGen.start()
 
 while not UI.go:
     time.sleep(0.1)

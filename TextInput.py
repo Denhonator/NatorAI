@@ -30,14 +30,14 @@ def load():
     except IOError:
         settings.levelprint("Couldn't load "+folder+"/sentences2.txt", 0)
     data["TotalSentences"] = count
-    settings.levelprint("\nLearning from data...", 0)
-    firstwords(data["Sentences"])
-    nextwords(data["Sentences"])
+    #settings.levelprint("\nLearning from data...", 0)
+    #firstwords(data["Sentences"])
+    #nextwords(data["Sentences"])
     settings.levelprint("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences", 0)
     settings.levelprint("Creating backup", 0)
-    save(".backup")
     if progress and progress<100:
         progress = 100
+    save(".backup")
 
 def add(sentence):
     #print(sentence)

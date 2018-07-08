@@ -5,6 +5,8 @@ import TextInput
 
 folder = settings.folder
 
+pregen = []
+
 def spamfilter(message):
     spamlimit=int(settings.findValue("SpamLimit"))
     prevword = ""
@@ -33,7 +35,13 @@ def entryfromlist(data, amount):
         if current >= selection:
             return w
 
-def word(data, feed, ignorelast=0):
+def word(data, feed, output):
+    try:
+        ignorelast=int(settings.findValue("msgLengthModifier"))*20-len(output)
+        outputwords = output.lower().split()
+    except:
+        ignorelast=int(settings.findValue("msgLengthModifier"))*output
+        outputwords = []
     current = 0
     fromfeed = []
     feedwords = 0
@@ -61,7 +69,8 @@ def word(data, feed, ignorelast=0):
         if w!="Occurances":
             current+=c
             if current >= selection and not currentword:
-                if w=="LastWord" and len(items)>2 and randint(1,100)<ignorelast:
+                #reroll chance
+                if randint(1,100)<ignorelast and ((w=="LastWord" and len(items)>2) or (len(outputwords)>1 and w==outputwords[-1])):
                     selection = randint(current,data["Occurances"])
                 else:
                     currentword = w
@@ -85,12 +94,13 @@ def thirdword(sentences, words, feed):
     entries = []
     total = 0
     length = len(words)
-    words = words.split()[-2]+" "+words.split()[-1]      
+    words = words.strip().lower()
+    words = words.split()[-2]+" "+words.split()[-1]
     for s, c in sentences:
-        if words in s:
+        if words in s.lower():
             try:
-                cont = s[s.find(words)+len(words):]
-                if cont.strip().split()[0] in s.split():
+                cont = s[s.lower().find(words)+len(words):]
+                if cont.lower().strip().split()[0] in s.lower().split():
                     for w in s.lower().split():
                         if w in feed:
                             c*=int(int(settings.findValue("FeedInNextWord"))*0.05)
@@ -115,13 +125,34 @@ def capitalization(data, message):
             output+=word+" "
     return output.strip()
 
+def findPregen(feed):
+    msgs = pregen
+    matches = []
+    total = 0
+    for msg in msgs:
+        match = 0
+        for w in feed:
+            if w.lower() in msg.lower().split():
+                match+=max(4, match*4)
+        if match:
+            total+=match
+            matches.append((msg, match))
+    try:
+        if(matches):
+            print(matches, total)
+            return entryfromlist(matches, total)
+        return msgs[randint(0,len(msgs)-1)]
+    except Exception as e:
+        print(e)
+        return ""
+
 def newGenerateSentence(feed=[]):
-    settings.levelprint(feed, 1)
+    if feed:
+        settings.levelprint(feed, 1)
     data = TextInput.data
-    currentword = word(data, feed)
+    currentword = word(data, feed, "")
     output = currentword+" "
     usedwords = []
-    lengthmod = int(settings.findValue("msgLengthModifier"))
     sentchance = int(settings.findValue("sentenceChance"))
     contmax = int(settings.findValue("maxContinuationLength"))
     contmod = int(settings.findValue("msgContinuationModifier"))
@@ -134,22 +165,24 @@ def newGenerateSentence(feed=[]):
             temp = ""
             if output.strip()!=currentword and randint(1,100) < sentchance:
                 temp = thirdword(data["Sentences"], output.strip(), feed)
-                if temp and temp not in usedwords:
+                if temp and (temp not in usedwords or temp.lower()==output.lower().strip().split()[-1]):
                     if temp=="LastWord":
                         settings.levelprint("Third word was final", 2)
                         break
                     currentword = temp
-                    if word(data["NextWords"][currentword.lower()], feed, lengthmod*20-len(output))=="LastWord":
+                    #chance to end
+                    if word(data["NextWords"][currentword.lower()], feed, len(output))=="LastWord":
                         if (lengthmax-5)-len(output)<randint(1,100):
                             output+=currentword
                             break
                     usedwords.append(currentword)
             if not temp or (temp and currentword!=temp):
-                currentword = word(data["NextWords"][currentword.lower()], feed, lengthmod*20-len(output))
+                currentword = word(data["NextWords"][currentword.lower()], feed, output)
+                #continuation
                 if currentword=="LastWord" and len(output)<contmax:
                     r = randint(8*contmod-(len(output)*2),100)
                     if r>90:
-                        currentword = word(data, feed)
+                        currentword = word(data, feed, output)
                     elif r>80:
                         currentword = "and"
                     elif r>70:
