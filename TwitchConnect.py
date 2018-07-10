@@ -76,8 +76,8 @@ class GenerateMessage(Thread):
             #pregen
             if self.message==1:
                 pregenAmount = int(settings.findValue("PregenAmount"))
-                pregenStart = 1-(0.01*min(max(int(settings.findValue("PregenStartupSpeed")),1),10))
-                pregenRefresh = (100.0/(min(max(int(settings.findValue("PregenRefreshSpeed")),1),10))-0.9)
+                pregenStart = 0.5-(0.05*min(max(0.2*int(settings.findValue("PregenStartupSpeed")),0),10))
+                pregenRefresh = (10.0/(min(max(0.2*int(settings.findValue("PregenRefreshSpeed")),1),10))-0.5)
                 if pregenAmount>99:
                     progress = 0
                     while self.message==1:
@@ -99,6 +99,7 @@ class GenerateMessage(Thread):
                 feed = self.message.lower().strip().split()
         else:
             feed = []
+        reply = ""
         if speak.pregen:
             reply = speak.findPregen(feed)
         if not reply:

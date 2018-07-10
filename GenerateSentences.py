@@ -139,7 +139,6 @@ def findPregen(feed):
             matches.append((msg, match))
     try:
         if(matches):
-            print(matches, total)
             return entryfromlist(matches, total)
         return msgs[randint(0,len(msgs)-1)]
     except Exception as e:
