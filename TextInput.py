@@ -1,13 +1,30 @@
 import re
 import string
+import pickle
 import GenerateSentences  as speak
 import SettingsAndPreferences as settings
 
 folder = settings.folder
-data = {"Sentences": [], "Definitions": {}}
+data = {}
 progress = 0
 
 def load():
+    global data
+    data = {}
+    try:
+        with open(folder+'/sentencedata.p', 'rb') as fp:
+            data = pickle.load(fp)
+        global progress
+        progress = 100
+        print("Loaded data with "+str(data["TotalSentences"])+" messages")
+    except FileNotFoundError:
+        print("Loading from sentences2.txt instead")
+        oldload()
+    save(".backup")
+
+def oldload():
+    data["Sentences"] = []
+    data["Definitions"] = {}
     count = 0
     total = 0
     global progress
@@ -30,33 +47,37 @@ def load():
     except IOError:
         settings.levelprint("Couldn't load "+folder+"/sentences2.txt", 0)
     data["TotalSentences"] = count
-    #settings.levelprint("\nLearning from data...", 0)
-    #firstwords(data["Sentences"])
-    #nextwords(data["Sentences"])
     settings.levelprint("Loaded "+str(data.get("TotalSentences",0))+" entries to Sentences", 0)
-    settings.levelprint("Creating backup", 0)
     if progress and progress<100:
         progress = 100
-    save(".backup")
 
-def add(sentence):
+def save(backup=""):
+    if progress<100 or data["TotalSentences"]==0:
+        print(str(progress)+", "+str(data["TotalSentences"]))
+        settings.levelprint("Not ready to save",0)
+        return
+    with open(folder+'/sentencedata.p'+backup, 'wb') as fp:
+        pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        settings.levelprint("Saved data to sentencedata.p"+backup,0)
+
+def add(sentence, count=1):
     #print(sentence)
     sentence = sentence.strip()
     if ignoresentence(sentence):
         return
     added = False
     sentences = []
-    data["TotalSentences"]=data.get("TotalSentences",0)+1
+    data["TotalSentences"]=data.get("TotalSentences",0)+count
     for s, c in data["Sentences"]:
         if sentence==s:
             c+=1
             added = True
         sentences.append((s,c))
     if not added:
-        sentences.append((sentence, 1))
+        sentences.append((sentence, count))
     data["Sentences"] = sentences
-    firstwords([(sentence, 1)])
-    nextwords([(sentence, 1)])
+    firstwords([(sentence, count)])
+    nextwords([(sentence, count)])
 
 def ignoresentence(sentence):
     for word in settings.settings["word"] + settings.settings["call"]:
@@ -67,27 +88,6 @@ def ignoresentence(sentence):
         settings.levelprint("Ignored learning message with command '"+sentence, 4)
         return True
     return False
-
-def save(backup=""):
-    if progress<100 or data["TotalSentences"]==0:
-        print(str(progress)+", "+str(data["TotalSentences"]))
-        settings.levelprint("Not ready to save",0)
-        return
-    f = open(folder+"/sentences2.txt"+backup, encoding='utf-8', mode='w')
-    output="TotalAmountOfSentences -- "+str(data["TotalSentences"])+"\n"
-    count = 0
-    for s, c in data["Sentences"]:
-        if s[-1]==",":
-            output+=s+" "
-        elif output[-1]==" ":
-            output+=s+" -- 1\n"
-            count+=1
-        else:
-            output+=s+" -- "+str(c)+"\n"
-            count+=c
-    f.write(output.strip())
-    f.close()
-    print("Saved "+str(count)+" sentences")
 
 def firstwords(sentences):
     count = 0

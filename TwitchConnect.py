@@ -89,7 +89,7 @@ class GenerateMessage(Thread):
                         speak.pregen.append(speak.newGenerateSentence())
                         if 100*len(speak.pregen)/pregenAmount>progress:
                             progress+=1
-                            print("Pre-generating... "+str(progress)+"%", end="\r")
+                            settings.levelprint("Pre-generating... "+str(progress)+"%",0)
                 return
             try:
                 feed = self.message.lower().split(settings.findValue("call"))[1].strip().split()
