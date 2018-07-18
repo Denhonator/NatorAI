@@ -80,6 +80,8 @@ class GenerateMessage(Thread):
                 pregenRefresh = (10.0/(min(max(0.2*int(settings.findValue("PregenRefreshSpeed")),1),10))-0.5)
                 if pregenAmount>99:
                     progress = 0
+                    if pregenAmount-len(speak.pregen)<2:
+                        progress = 100
                     while self.message==1:
                         if len(speak.pregen)>=pregenAmount:
                             del speak.pregen[0]

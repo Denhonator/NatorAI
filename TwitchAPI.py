@@ -3,13 +3,13 @@ import json
 import SettingsAndPreferences as settings
 import sys
 
-oauth = settings.findValue("APIOauth")
-clientid = settings.findValue("ClientID")
+oauth = settings.findValue("APIOauth").strip()
+clientid = settings.findValue("ClientID").strip()
 
 def parseInfo(url, lookfor):
     headers={
-    'Client-ID': clientid,
     'Accept': 'application/vnd.twitchtv.v5+json',
+    'Client-ID': clientid,
     'Authorization': 'OAuth '+oauth,
     'Content-Type': 'application/json'
     }
@@ -32,9 +32,11 @@ def parseInfo(url, lookfor):
 
 #Getting your own ID at the start
 try:
-    ID = parseInfo("https://api.twitch.tv/kraken/channel", "_id")
-except:
-    print("Twitch API features not in use")
+    ID = parseInfo("https://api.twitch.tv/kraken/user", "_id")
+except Exception as e:
+    print(e.read())
+    print("Can't automatically fetch ID, using manual value")
+    ID = settings.findValue("UserID")
 
 def getUserID(user):
     url = "https://api.twitch.tv/kraken/users?login="+user
@@ -59,3 +61,8 @@ def totalSubs():
 def isSubbed(userid):
     url = 'https://api.twitch.tv/kraken/channels/'+ID+'/subscriptions/'+userid
     parseInfo(url, "sub_plan")
+
+if(totalFollowers()):
+    settings.levelprint("API working",0)
+else:
+    settings.levelprint("API not working",0)

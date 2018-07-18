@@ -16,11 +16,17 @@ def load():
             data = pickle.load(fp)
         global progress
         progress = 100
-        print("Loaded data with "+str(data["TotalSentences"])+" messages")
+        settings.levelprint("Loaded data with "+str(data["TotalSentences"])+" messages",0)
     except FileNotFoundError:
-        print("Loading from sentences2.txt instead")
+        settings.levelprint("Loading from sentences2.txt instead",0)
         oldload()
     save(".backup")
+    try:
+        with open(folder+'/pregen.p', 'rb') as fp:
+            speak.pregen = pickle.load(fp)
+        settings.levelprint("Loaded pregen",0)
+    except FileNotFoundError:
+        settings.levelprint("Couldn't load pregen from file",0)
 
 def oldload():
     data["Sentences"] = []
@@ -59,6 +65,10 @@ def save(backup=""):
     with open(folder+'/sentencedata.p'+backup, 'wb') as fp:
         pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
         settings.levelprint("Saved data to sentencedata.p"+backup,0)
+    if speak.pregen:
+        with open(folder+'/pregen.p','wb') as fp:
+            pickle.dump(speak.pregen, fp, protocol=pickle.HIGHEST_PROTOCOL)
+            settings.levelprint("Saved pregen",0)
 
 def add(sentence, count=1):
     #print(sentence)
