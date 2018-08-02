@@ -88,9 +88,12 @@ class GenerateMessage(Thread):
                             time.sleep(pregenRefresh)
                         else:
                             time.sleep(pregenStart)
-                        speak.pregen.append(speak.newGenerateSentence())
-                        if 100*len(speak.pregen)/pregenAmount>progress:
-                            progress+=1
+                        if settings.findValue("NewGeneration")=="1":
+                            speak.pregen.append(speak.GenerateSentence([],False))
+                        else:
+                            speak.pregen.append(speak.newGenerateSentence([], 10))
+                        if int(100*len(speak.pregen)/pregenAmount)>progress:
+                            progress=int(100*len(speak.pregen)/pregenAmount)
                             settings.levelprint("Pre-generating... "+str(progress)+"%",0)
                 return
             try:
@@ -104,11 +107,18 @@ class GenerateMessage(Thread):
         reply = ""
         if speak.pregen:
             reply = speak.findPregen(feed)
-        if not reply:
-            reply = speak.newGenerateSentence(feed)
+        hasFeed = False
+        for w in feed:
+            if w in reply.lower().split():
+                hasFeed = True
+        if not reply or (feed and not hasFeed):
+            reply = speak.GenerateSentence(feed)
         send_message(reply)
-        settings.levelprint("GENERATED MESSAGE: " + reply, 1)
-        speak.pregen.remove(reply)
+        if hasFeed or not feed:
+            settings.levelprint("PREGEN MESSAGE: " + reply, 1)
+            speak.pregen.remove(reply)
+        else:
+            settings.levelprint("GENERATED MESSAGE: " + reply, 1)
 
 class SubWatch(Thread):
     def __init__(self, user, months=0):

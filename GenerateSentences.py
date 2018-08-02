@@ -125,15 +125,20 @@ def capitalization(data, message):
             output+=word+" "
     return output.strip()
 
-def findPregen(feed):
-    msgs = pregen
+def findPregen(feed, sentence=False):
+    if sentence:
+        msgs = TextInput.data["Sentences"]
+    else:
+        msgs = pregen
     matches = []
     total = 0
     for msg in msgs:
+        if sentence:
+            msg = msg[0]
         match = 0
         for w in feed:
             if w.lower() in msg.lower().split():
-                match+=max(20, match*20)
+                match+=max(50, match*50)
         if match:
             total+=match
             matches.append((msg, match))
@@ -145,7 +150,7 @@ def findPregen(feed):
         print(e)
         return ""
 
-def newGenerateSentence(feed=[]):
+def newGenerateSentence(feed=[], pr=2):
     if feed:
         settings.levelprint(feed, 1)
     data = TextInput.data
@@ -159,14 +164,14 @@ def newGenerateSentence(feed=[]):
     while(currentword and len(output)<lengthmax):
         if currentword.lower() in feed:
             feed.remove(currentword.lower())
-            settings.levelprint(currentword+" from feed", 2)
+            settings.levelprint(currentword+" from feed", pr)
         try:
             temp = ""
             if output.strip()!=currentword and randint(1,100) < sentchance:
                 temp = thirdword(data["Sentences"], output.strip(), feed)
                 if temp and (temp not in usedwords or temp.lower()==output.lower().strip().split()[-1]):
                     if temp=="LastWord":
-                        settings.levelprint("Third word was final", 2)
+                        settings.levelprint("Third word was final", pr)
                         break
                     currentword = temp
                     #chance to end
@@ -195,3 +200,73 @@ def newGenerateSentence(feed=[]):
             settings.levelprint("Data not found for "+currentword, 0)
             break
     return spamfilter(capitalization(data["Definitions"], output))
+
+if __name__ == "__main__":
+    TextInput.load()
+
+def ReplaceThird(s1,s2, threshold=2, skip=0, feed=[], pr=True):
+    s1w = s1.lower().split()
+    s2w = s2.lower().split()
+    S1W = s1.split()
+    S2W = s2.split()
+    loop = 0
+    found = False
+    if feed:
+        for w in feed:
+            if w in s1w:
+                found = True
+                break
+        if not found:
+            return None
+    for word in s1w:
+        if loop<=skip:
+            loop+=1
+            continue
+        if word in s2w:
+            index1 = loop+1
+            index2 = s2w.index(word)+1
+            matches = 1
+            while index1<len(s1w) and index2<len(s2w):
+                if s1w[index1]==s2w[index2]:
+                    matches+=1
+                else:
+                    if matches>=threshold:
+                        if pr:
+                            settings.levelprint("USED: "+s1,2)
+                        S1W[index1]=S2W[index2]
+                        SW = S1W[:index1]+S2W[index2:]
+                        return " ".join(SW)
+                    break
+                index1+=1
+                index2+=1
+        loop+=1
+    return None
+
+def GenerateSentence(feed=[], pr=True):
+    size = len(TextInput.data["Sentences"])-1
+    loops = size
+    output = ""
+    r = 0
+    if feed:
+        output = findPregen(feed, True)
+    while len(output.split())<2:
+        r = randint(0,size)
+        output = TextInput.data["Sentences"][r][0]
+    if pr:
+        settings.levelprint("USED: "+output,2)
+    current = r
+    edits = 0
+    loop = 0
+    while edits<5 and loop < loops:
+        current+=randint(1,10)
+        if current>size:
+            current-=size
+        t = 2
+        if loop>loops/2:
+            t = 1
+        temp = ReplaceThird(TextInput.data["Sentences"][current][0], output, t, edits, feed, pr)
+        if temp:
+            output = temp
+            edits += 1
+        loop += 1
+    return output
