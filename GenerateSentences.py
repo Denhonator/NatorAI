@@ -145,6 +145,8 @@ def findPregen(feed, sentence=False):
     try:
         if(matches):
             return entryfromlist(matches, total)
+        if sentence:
+            return msgs[randint(0,len(msgs)-1)][0]
         return msgs[randint(0,len(msgs)-1)]
     except Exception as e:
         print(e)
@@ -247,6 +249,8 @@ def GenerateSentence(feed=[], pr=True):
     loops = size
     output = ""
     r = 0
+    if feed and not feed[0]:
+        feed = []
     if feed:
         output = findPregen(feed, True)
     while len(output.split())<2:
