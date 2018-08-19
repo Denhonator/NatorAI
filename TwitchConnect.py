@@ -13,9 +13,9 @@ PORT = 6667
 
 s = socket.socket()
 
-def parseMessage(parts):
+def parseMessage(tags):
     msginfo = {}
-    for line in parts[0].split(";"):
+    for line in tags[1:].split(";"):
         try:
             (key, value) = line.split("=")
             msginfo[key] = value
@@ -116,7 +116,10 @@ class GenerateMessage(Thread):
         send_message(reply)
         if hasFeed or not feed:
             settings.levelprint("PREGEN MESSAGE: " + reply, 1)
-            speak.pregen.remove(reply)
+            try:
+                speak.pregen.remove(reply)
+            except:
+                settings.levelprint("Couldn't remove from pregen",2)
         else:
             settings.levelprint("GENERATED MESSAGE: " + reply, 1)
 
@@ -161,7 +164,7 @@ class FollowWatch(Thread):
                         feed = followfeed.split()
                     if followreply.find("()")>-1:
                         gen = speak.newGenerateSentence(feed)
-                    reply=followreply.replace("{}", "@"+api.followers()[0]).replace("()", gen).strip()
+                    reply=followreply.replace("{}", api.NewFollower()).replace("()", gen).strip()
                     send_message(reply)
                     settings.levelprint("FOLLOW REPLY: " + reply, 1)
                 self.followers = self.followers2
@@ -195,7 +198,6 @@ PASS = settings.findValue("oauth")
 connectToTwitch()
 print("Talking set to "+settings.findValue("enableTalking"))
 print("Learning set to "+settings.findValue("enableLearning"))
-ohno = 0
 timeOfReply = 0
 timeOfCommand = 0
 s.settimeout(10)
@@ -211,34 +213,39 @@ message = ""
 while True:
     try:
         for line in (s.recv(1024)).decode("utf-8","replace").split('\\r\\n'):
-            if "PING" in line:
+            if line.strip()=="PING :tmi.twitch.tv":
                 s.send(bytes("PONG\r\n", "UTF-8"))
                 settings.levelprint("PING PONG", 0)
                 if settings.findValue("autosave")=="1":
                     AI.save()
                     settings.saveall()
-                continue
+                continue            
             if len(line)<5:
                 continue
+            
             parts = line.split(" :", 2)
-            if len(parts) > 2:
+            if "tmi.twitch.tv" in parts[1]:
                 message = parts[2].strip()
             else:
-                settings.levelprint(line, 0)
                 message = ""
-                settings.levelprint("Not a usual message, ignoring", 0)
+                settings.levelprint("Couldn't parse message", 0)
+                settings.levelprint(line, 0)
+                continue
                 
-            msginfo = parseMessage(parts)
-            username = msginfo.get("display-name","").lower()
+            msginfo = parseMessage(parts[0])
+            settings.levelprint(msginfo,4)
+            
+            username = msginfo.get("display-name","")
             if not username:
                 settings.levelprint("No display-name found", 6)
                 
             approved = False
-            if msginfo.get("subscriber","0")!="0":
+            if "subscriber" in msginfo.get("badges","") or "mod" in msginfo.get("badges",""):
                 approved = True
-                settings.levelprint(username+" is a subscriber!", 6)
-            elif username in settings.userlist("approved users.txt"):
+            elif username.lower() in settings.userlist("approved users.txt"):
                 approved = True
+            if approved:
+                settings.levelprint(username+" is approved!", 6)
 
             if msginfo.get("msg-id", ""):
                 settings.levelprint(msginfo["msg-id"]+" happened!", 6)
@@ -250,14 +257,10 @@ while True:
                         subChecker.setName('Sub message')
                         subChecker.start()               
 
-            if not message:
-                settings.levelprint(line, 6)
-                continue
-
             if "PRIVMSG" not in parts[1] and message:
-                settings.levelprint("Non PRIVMSG message: "+message, 6)
-
-            settings.levelprint(username+": "+message, 3)
+                settings.levelprint("Non PRIVMSG message: "+message, 3)
+            else:
+                settings.levelprint(username+": "+message, 3)
             
             #update settings
             cooldown = int(settings.findValue("cooldown"))
@@ -265,30 +268,38 @@ while True:
             autoCooldown = int(settings.findValue("autoCooldown"))
             prefix = settings.findValue("MessagePrefix")
             call = settings.findValue("call")
-            #learning
-            if not username in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
-                if (prefix=="30" and username!=NICK) or (prefix!="30" and message.find(prefix)!=0):
-                    if wordAddingThread.is_alive():
-                        settings.levelprint("Skipping because adding previous words", 6)
-                    else:
-                        wordAddingThread = AddWords(message)
-                        wordAddingThread.start()
                     
             #commands
-            try:
-                if message[0]=='!' and ((len(message.strip().split())==1 and settings.commandList(message.strip().split()[0].lower()) \
-                                       and abs(time.clock()-timeOfCommand > int(settings.findValue("commandCooldown")))
-                                       or (username in settings.userlist("whitelist.txt") and len(message.strip().split())>1))):
-                    if len(message.strip().split())>1:
-                        reply = settings.commandList(message.strip().split()[0], message.split(" ", 1)[1])
-                    else:
-                        reply = settings.commandList(message.split()[0])
+            if message[0]=='!':
+                white = username.lower() in settings.userlist("whitelist.txt")
+                if white or abs(time.clock()-timeOfCommand) > int(settings.findValue("commandCooldown")):
+                    cmdparts = message.strip().split(" ", 1)
+                    reply = settings.findValue(message.split()[0])
+                    if white:
+                        try:
+                            if cmdparts[0]=="!del":
+                                reply = settings.findValue(cmdparts[1], None, True)
+                            cmd = cmdparts[1].split("=")[0].strip()
+                            val = cmdparts[1].split("=")[1].strip()
+                            if len(cmdparts)>=2:
+                                if cmdparts[0]=="!edit":
+                                    reply = settings.findValue(cmd, val, True)   
+                                if cmdparts[0]=="!add":
+                                    reply = settings.findValue(cmd, val)
+                        except IndexError as e:
+                            pass
                     if reply!="30":
                         settings.levelprint("COMMAND RESPONSE: " + reply, 1)
                         send_message(reply)
                         timeOfCommand = time.clock()
-            except IndexError:
-                settings.levelprint(message+" caused index error", 6)
+
+            #learning
+            elif username.lower() in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
+                if wordAddingThread.is_alive():
+                    settings.levelprint("Skipping because adding previous words", 6)
+                else:
+                    wordAddingThread = AddWords(message)
+                    wordAddingThread.start()
                 
             #talking
             if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfReply) > autoCooldown):

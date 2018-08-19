@@ -25,14 +25,6 @@ use = ["NICK",
     "PregenAmount",
     "PregenStartupSpeed",
     "PregenRefreshSpeed",
-    "FeedInFirstWord",
-    "FeedInNextWord",
-    "msgLengthModifier",
-    "maxMessageLength",
-    "msgContinuationModifier",
-    "maxContinuationLength",
-    "sentenceChance",
-    "SpamLimit",
     "enableLearning",
     "enableTalking",
     "autosave",
@@ -115,13 +107,18 @@ def saveall():
     save("whitelist.txt")
     save("word ignore list.txt")
 
-def findValue(setting, value=None):
+def findValue(setting, value=None, replace=False):
     key = setting.split()[0]
+    global settings
     if value:
-        if settings.get(key, None):
+        if settings.get(key, None) and not replace:
             settings[key].append(value)
         else:
             settings[key]=[value]
+        return value
+    elif replace and key in settings:
+        del settings[key]
+        return "Removed command "+key
     try:
         return settings[key][random.randint(0,len(settings[key])-1)]
     except KeyError:
@@ -137,9 +134,6 @@ def userlist(filename, add=None):
         return [name.lower() for name in settings[key]]
     except KeyError:
         return []
-
-def commandList(add=None, reply=None):
-    return findValue(add, reply)
 
 def levelprint(text, level):
     try:

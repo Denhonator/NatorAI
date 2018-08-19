@@ -1,20 +1,7 @@
 SETUP:
 - Install python 3.6.5 if you don't have it yet
 - Get your oauth token at https://twitchapps.com/tmi/ using the account the bot will use
-- Open up "settings and commands.txt"
-- All entries must be on different lines
-- Don't change or remove the left word on any line except MessagePrefix if you want to remove that
-- Add your account name to NICK
-- Add the channels for reading (JOIN) and sending messages (SENDTO). Usually your own channel
-- Add the oauth token
-
-It should look something like this:
-NICK denhonator
-JOIN denhonator
-SENDTO denhonator
-oauth oauth:xxxxxxxxxxxxxxxx
-
-TwitchConnect.py is the main file to launch, but hold on, check your settings
+- Launch TwitchConnect and change settings
 
 MessagePrefix adds characters before the bot's messages. If the bot uses your personal
 account (which is useful so the bot won't get kicked out or anything), this can be used to
@@ -28,45 +15,22 @@ autoCooldown is the time it takes for the bot to generate a message regardless
 call determines what chat users must type at the start of their message to make
 the bot reply. Anything written after that is more likely to make an appaerance in the reply
 
-FeedInFirstWord and FeedInNextWord are chances in percentage for something from the feed
-to appear in the first word and the following words correspondingly. Good values are generally
-between 50 and 100
-
-msgLengthModifier affects how long the messages tend to be. I recommend at least 4 here, I'm using 10.
-
-Once the reply character amount hits maxMessageLength, no more words will be added
-
-msgContinuationModifier affects the chance to continue the reply even though a sentence
-has been chosen to be finished. 4 seems good in my experience.
-maxContinuationLength determines how long the message can be in characters to use this forementioned
-message continuation
-
-sentenceChance is a percentage value for the chance to continue the two last words with some
-known third word. This tends to generate fuller sentences, sometimes even repeating
-what someone has at some point said. I recommend 100 unless you want more random results.
-
-SpamLimit limits how many times the same word can be repeated. At 0 no repetition is allowed, at 1
-only two in a row are allowed etc. Useful for reducing emote spamming, recommended to have 0-5 here.
-
 enableLearning enables learning words from the chat that has been joined. 1 or 0.
 enableTalking is the same, but for sending messages. When starting out, you should
 set this to 0, as the program can crash if it tries to form sentences without knowing anything
 
 Commands:
-In chat, a user with their name on "whitelist.txt" can add a command by typing
-!command textYouWantAsAreplyWhenSomeoneTypesTheCommand
-Then any user can type !command and get the same reply
-Commands can be deleted by typing !command delete in chat, or by removing them
-from "settings and commands.txt". You can also add commmands by typing them out there
-the same way.
-
-Emotes and other special capitalization:
-The bot keeps track of special capitalization. Each time a word is typed differently than
-what the bot currently knows, it will unlearn an entry. In the end, the most common
-capitalization should be learned.
+A commands are single words starting with '!', that will trigger specific responses.
+Commands can be added and edited through the UI or chat.
+In chat, a user with their name on "whitelist.txt" can edit commands.
+!add !command=Response will add a new response to the command. when !command is called, a random
+response will be chosen. This works whether the command already exists or not.
+!edit !command=Response will set the command to only have the given response.
+!del !command will remove the command entirely.
 
 Multiple memories:
-You can define a new folder for word data in folder.txt
+You can define a new folder for data in folder.txt, to use in a different channel for example.
+Just edit folder.txt any time you want to switch between different folders.
 
 Sub and follower interaction:
 Requires you to create an app at https://dev.twitch.tv/ and take the client ID and head to
@@ -91,6 +55,3 @@ You can also place a randomly generated message with (). You can give feedwords 
 Example for follow: FollowFeed why
 The same applies to Subs and Resubs, but in ResubReply you can also add [], which will be replaced 
 with the amount of sub months
-
-I have added a small UI, which for now can mostly be used to save what the AI has learned. If you do not want to save,
-you should hit "Quit without saving". Otherwise it will save.

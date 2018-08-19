@@ -1,2 +1,1 @@
-Message preloading
-Custom continuation
+Force response button

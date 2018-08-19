@@ -33,14 +33,6 @@ class getInput(Thread):
                             "autoCooldown": "Time after which the bot will send a message on its own",
                             "commandCooldown": "Cooldown for using commands for all users",
                             "call": "Characters used to provoke a random message from the bot. Following words will be used as feed",
-                            "FeedInFirstWord": "Chance to start a message with a word from given feed",
-                            "FeedInNextWord": "Chance to use a word from given feed in a next word",
-                            "msgLengthModifier": "Affects the typical length of random messages. Default: 5 Recommended: 1-10",
-                            "maxMessageLength": "Character limit after which no more words will be added. Recommended: 200 or more",
-                            "msgContinuationModifier": "Chance to continue a message if it would otherwise end. Default: 4 Recommended: 1-10",
-                            "maxContinuationLength": "Character threshold after which continuation will not be used anymore",
-                            "sentenceChance": "Chance to look for next words using the previous two words rather than one. Recommended: 100",
-                            "SpamLimit": "Limit to how many times a word can be repeated. Mainly to avoid potential emote spamming",
                             "enableLearning": "Allow the AI to learn from twitch chat (0,1)",
                             "enableTalking": "Allow the AI to generate and send messages to twitch chat (0,1)",
                             "autosave": "Enable autosave for AI and settings every time Twitch pings the bot (0,1)",
@@ -58,10 +50,12 @@ class getInput(Thread):
         self.window = Tk()
         self.window.title(settings.folder)
         self.window.geometry('640x420')
+        
         def save():     
             AI.save()
             txt.insert(INSERT,'Saved AI!\n')
             txt.see("end")
+            
         def saveset():
             if entry.get() and entry.get()!="-":
                 settings.levelprint("Updating "+self.key+str(self.index)+" with "+entry.get(), 5)
@@ -72,9 +66,14 @@ class getInput(Thread):
             settings.saveall()
             txt.insert(INSERT,'Saved settings!\n')
             txt.see("end")
+            
         def nosave():
             self.save = False
             self.window.quit()
+
+        def Reconstruct():
+            AI.Reconstruct()
+            
         def connect():
             global go
             go = True
@@ -179,11 +178,13 @@ class getInput(Thread):
         saveset = Button(self.window, text="Save settings", command=saveset, height=2, width=45)
         saveset.grid(column=0, row=3,sticky=N)
         nosave = Button(self.window, text="Quit without saving", command=nosave, height=2, width=45)
-        nosave.grid(column=0, row=5,sticky=N)
+        nosave.grid(column=0, row=6,sticky=N)
         savequit = Button(self.window, text="Save and quit", command=self.window.quit, height=2, width=45)
         savequit.grid(column=0, row=4,sticky=N)
         connect = Button(self.window, text="Connect", command=connect, height=2, width=45)
         connect.grid(column=0, row=1,sticky=N)
+        reconstruct = Button(self.window, text="Reconstruct", command=Reconstruct, height=2, width=45)
+        reconstruct.grid(column=0, row=5,sticky=N)
         txt = scrolledtext.ScrolledText(self.window,width=40,height=10)
         txt.grid(column=0,row=0,sticky=N)
         txt.insert(INSERT, "Change, add, remove settings/commands/values. Choose one from the left menu, then add a value to 0, "
