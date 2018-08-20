@@ -83,7 +83,7 @@ def Combine(s1,s2, threshold=2, skip=0, feed=[], pr=True):
 
 def GenerateSentence(feed=[], pr=True):
     size = len(TextInput.data["Sentences"])-1
-    loops = size
+    loops = size * (int(settings.findValue("EditLoopRepetition"))/30)
     output = ""
     r = 0
     if feed and not feed[0]:
@@ -96,9 +96,10 @@ def GenerateSentence(feed=[], pr=True):
     if pr:
         settings.levelprint("USED: "+output,2)
     current = randint(0,size)
+    maxedits = int(settings.findValue("MaxEdits"))
     edits = 0
     loop = 0
-    while edits<5 and loop < loops:
+    while edits<maxedits and loop < loops:
         current+=1
         if current>size:
             current-=size
