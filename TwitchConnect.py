@@ -274,6 +274,8 @@ while True:
                     reply = settings.findValue(message.split()[0])
                     if white:
                         try:
+                            if cmdparts[1][0]!="!":
+                                cmdparts[1] = "!"+cmdparts[1]
                             if cmdparts[0]=="!del":
                                 reply = settings.findValue(cmdparts[1], None, True)
                             cmd = cmdparts[1].split("=")[0].strip()
