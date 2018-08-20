@@ -49,6 +49,7 @@ def Combine(s1,s2, threshold=2, skip=0, feed=[], pr=True):
     S1W = s1.split()
     S2W = s2.split()
     loop = 0
+    skip = max(10-skip, 1)
     found = False
     if feed:
         for w in feed:
