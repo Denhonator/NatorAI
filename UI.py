@@ -76,12 +76,14 @@ class getInput(Thread):
             
         def connect():
             global go
+            if go:
+                return
             go = True
             timeout = 0
-            while go and timeout<3:
+            while go and timeout<2:
                 time.sleep(0.1)
                 timeout+=0.1
-            if timeout<3:
+            if timeout<2:
                 txt.insert(INSERT, "Connected!\n")
             else:
                 txt.insert(INSERT, "Failed to connect\n")

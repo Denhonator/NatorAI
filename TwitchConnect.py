@@ -164,7 +164,7 @@ class FollowWatch(Thread):
                         feed = followfeed.split()
                     if followreply.find("()")>-1:
                         gen = speak.newGenerateSentence(feed)
-                    reply=followreply.replace("{}", api.NewFollower()).replace("()", gen).strip()
+                    reply=followreply.replace("{}", api.NewFollower(False)).replace("()", gen).strip()
                     send_message(reply)
                     settings.levelprint("FOLLOW REPLY: " + reply, 1)
                 self.followers = self.followers2
@@ -199,6 +199,7 @@ connectToTwitch()
 print("Talking set to "+settings.findValue("enableTalking"))
 print("Learning set to "+settings.findValue("enableLearning"))
 timeOfReply = 0
+timeOfAuto = 0
 timeOfCommand = 0
 s.settimeout(10)
 
@@ -302,23 +303,26 @@ while True:
                     wordAddingThread.start()
                 
             #talking
-            if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfReply) > autoCooldown):
+            if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfAuto) > autoCooldown):
                 if (abs(time.clock()-timeOfReply)>cooldown and approved) or abs(time.clock()-timeOfReply)>longerCooldown:
                     if messageGenThread.is_alive():
                         settings.levelprint("Skipping because generating another message", 6)
                     else:
-                        timeOfReply = time.clock()
+                        if message.lower().find(call)>-1:
+                            timeOfReply = time.clock()
+                        else:
+                            timeOfAuto = time.clock()
                         messageGenThread = GenerateMessage(message)
                         message = ""
                         messageGenThread.start()
                     
     except socket.timeout:
         autoCooldown = int(settings.findValue("autoCooldown"))
-        if settings.findValue("enableTalking")=="1" and abs(time.clock()-timeOfReply) > autoCooldown:
+        if settings.findValue("enableTalking")=="1" and abs(time.clock()-timeOfAuto) > autoCooldown:
             if messageGenThread.is_alive():
                 settings.levelprint("Skipping because generating another message", 6)
             else:
-                timeOfReply = time.clock()-min(3, int(settings.findValue("autoCooldown"))-3)
+                timeOfAuto = time.clock()-min(3, int(settings.findValue("autoCooldown"))-3)
                 if message:
                     messageGenThread = GenerateMessage()
                     message = ""
