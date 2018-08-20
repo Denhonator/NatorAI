@@ -291,7 +291,7 @@ while True:
                         timeOfCommand = time.clock()
 
             #learning
-            elif username.lower() in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
+            elif username.lower() not in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
                 if wordAddingThread.is_alive():
                     settings.levelprint("Skipping because adding previous words", 6)
                 else:
