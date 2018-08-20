@@ -104,9 +104,9 @@ def GenerateSentence(feed=[], pr=True):
         if current>size:
             current-=size
         t = 2
-        if loop>loops/2:
+        if loop>loops*0.8 and edits < 2:
             t = 1
-        temp = Combine(TextInput.data["Sentences"][current], output, t, edits, feed, pr)
+        temp = Combine(TextInput.data["Sentences"][current], output, t, edits*(3-t), feed, pr)
         if temp:
             output = temp
             edits += 1
