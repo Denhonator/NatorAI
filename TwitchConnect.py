@@ -124,24 +124,24 @@ class GenerateMessage(Thread):
             settings.levelprint("GENERATED MESSAGE: " + reply, 1)
 
 class SubWatch(Thread):
-    def __init__(self, user, months=0):
+    def __init__(self, user, months, user2=None):
         Thread.__init__(self)
         self.user = user
         self.months = months
+        self.user2 = user2
 
     def run(self):
         subtype = "Sub"
         if self.months!="0":
-            subtype = "Resub"     
+            subtype = "Resub"
+        if user2:
+            subtype = "Subgift"
         subreply = settings.findValue(subtype+"Reply")
         if subreply and subreply!="30" and settings.findValue("enableTalking"):
-            feed = []
-            subfeed = settings.findValue(subtype+"Feed").strip()
-            if subfeed!="30":
-                feed = subfeed.split()
             if subreply.find("()")>-1:
-                gen = speak.newGenerateSentence(feed)
-            reply=subreply.replace("{}", "@"+self.user).replace("[]", self.months).replace("()", gen).strip()
+                gen = speak.newGenerateSentence()
+            reply=subreply.replace("{}", self.user).replace("[]", self.months).replace("()", gen)
+            reply=reply.replace("{from}", self.user).replace("{to}", self.user2).strip()
             send_message(reply)
             settings.levelprint("SUB REPLY: " + reply, 1)
 
@@ -157,13 +157,9 @@ class FollowWatch(Thread):
                 self.followers2 = api.totalFollowers()               
                 if self.followers2>self.followers and followreply!="30" and settings.findValue("enableTalking")=="1":
                     followreply = settings.findValue("FollowReply")
-                    feed = []
                     gen = ""
-                    followfeed = settings.findValue("FollowFeed").strip()
-                    if followfeed!="30":
-                        feed = followfeed.split()
                     if followreply.find("()")>-1:
-                        gen = speak.newGenerateSentence(feed)
+                        gen = speak.newGenerateSentence()
                     reply=followreply.replace("{}", api.NewFollower(False)).replace("()", gen).strip()
                     send_message(reply)
                     settings.levelprint("FOLLOW REPLY: " + reply, 1)
@@ -251,12 +247,12 @@ while True:
             if msginfo.get("msg-id", ""):
                 settings.levelprint(msginfo["msg-id"]+" happened!", 6)
                 msgid = msginfo["msg-id"]
-                if msgid=="sub" or msgid=="resub":
-                    if settings.findValue("enableTalking")=="1":
-                        months = msginfo.get("msg-param-months","0")
-                        subChecker = SubWatch(username, months)
-                        subChecker.setName('Sub message')
-                        subChecker.start()               
+                if "sub" in msgid and settings.findValue("enableTalking")=="1":
+                    months = msginfo.get("msg-param-months","0")
+                    user2 = msginfo.get("msg-param-recipient-display-name", None)
+                    subChecker = SubWatch(username, months, user2)
+                    subChecker.setName('Sub message')
+                    subChecker.start()               
 
             if "PRIVMSG" not in parts[1] and message:
                 settings.levelprint("Non PRIVMSG message: "+message, 3)

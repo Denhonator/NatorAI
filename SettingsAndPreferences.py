@@ -33,11 +33,9 @@ use = ["NICK",
     "UserID",
     "FollowCheckCooldown",
     "FollowReply",
-    "FollowFeed",
     "SubReply",
-    "SubFeed",
     "ResubReply",
-    "ResubFeed",]
+    "SubgiftReply"]
 
 def load(file):
     try:

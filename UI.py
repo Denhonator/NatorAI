@@ -40,11 +40,9 @@ class getInput(Thread):
                             "ClientID": "ClientID from your created twitch app for the bot",
                             "FollowCheckCooldown": "How often in seconds followers will be checked",
                             "FollowReply": "What the bot will say when someone follows. {} will be replaced by the nick, () with a generated message",
-                            "FollowFeed": "Feed that the AI will use for generating a random message in response to a follow",
                             "SubReply": "What the bot will say when someone subscribes. {} will be replaced by the nick, () with a generated message",
-                            "SubFeed": "Feed that the AI will use for generating a random message in response to a subscription",
                             "ResubReply": "Same as SubReply, but for resubs. Additionally, [] will be replaced with sub months",
-                            "ResubFeed": "Feed that the AI will use for generating a random message in response to a resub"}
+                            "SubgiftReply": "Same as SubReply, but for subgifts. However, {from} and {to} are replaced with usernames"}
 
     def run(self):
         self.window = Tk()
