@@ -216,7 +216,8 @@ while True:
                 if settings.findValue("autosave")=="1":
                     AI.save()
                     settings.saveall()
-                continue            
+                continue
+            settings.levelprint(line.strip(),6)
             if len(line)<5:
                 continue
             
