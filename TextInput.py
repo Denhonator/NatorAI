@@ -74,6 +74,7 @@ def Reconstruct():
     data = {}
     data["Sentences"] = sentences
     data["TotalSentences"] = len(sentences)
+    speak.pregen = []
     settings.levelprint("Reconstructed!",0)
 
 ##def firstwords(sentences):

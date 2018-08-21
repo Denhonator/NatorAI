@@ -48,8 +48,7 @@ def Combine(s1,s2, threshold=2, skip=0, feed=[], pr=True):
     s2w = s2.lower().split()
     S1W = s1.split()
     S2W = s2.split()
-    loop = 0
-    skip = max(10-skip, 1)
+    loop = max(len(s1w)-1-skip,0)
     found = False
     if feed:
         for w in feed:
@@ -58,10 +57,8 @@ def Combine(s1,s2, threshold=2, skip=0, feed=[], pr=True):
                 break
         if not found:
             return None
-    for word in s1w:
-        if loop<=skip:
-            loop+=1
-            continue
+    while loop>=0:
+        word = s1w[loop]
         if word in s2w:
             index1 = loop+1
             index2 = s2w.index(word)+1
@@ -79,7 +76,7 @@ def Combine(s1,s2, threshold=2, skip=0, feed=[], pr=True):
                     break
                 index1+=1
                 index2+=1
-        loop+=1
+        loop+=-1
     return None
 
 def GenerateSentence(feed=[], pr=True):
@@ -107,7 +104,7 @@ def GenerateSentence(feed=[], pr=True):
         t = 2
         if loop>loops*0.8 and edits < 2:
             t = 1
-        temp = Combine(TextInput.data["Sentences"][current], output, t, edits*(3-t), feed, pr)
+        temp = Combine(TextInput.data["Sentences"][current], output, t, edits, feed, pr)
         if temp:
             output = temp
             edits += 1

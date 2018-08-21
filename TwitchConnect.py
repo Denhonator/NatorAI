@@ -124,7 +124,7 @@ class GenerateMessage(Thread):
             settings.levelprint("GENERATED MESSAGE: " + reply, 1)
 
 class SubWatch(Thread):
-    def __init__(self, user, months, user2=None):
+    def __init__(self, user, months, user2):
         Thread.__init__(self)
         self.user = user
         self.months = months
@@ -134,7 +134,7 @@ class SubWatch(Thread):
         subtype = "Sub"
         if self.months!="0":
             subtype = "Resub"
-        if user2:
+        if self.user2:
             subtype = "Subgift"
         subreply = settings.findValue(subtype+"Reply")
         if subreply and subreply!="30" and settings.findValue("enableTalking"):
@@ -245,7 +245,7 @@ while True:
                 settings.levelprint(username+" is approved!", 6)
 
             if msginfo.get("msg-id", ""):
-                settings.levelprint(msginfo["msg-id"]+" happened!", 6)
+                settings.levelprint(msginfo["msg-id"]+" happened!", 0)
                 msgid = msginfo["msg-id"]
                 if "sub" in msgid and settings.findValue("enableTalking")=="1":
                     months = msginfo.get("msg-param-months","0")
