@@ -4,7 +4,7 @@ import SettingsAndPreferences as settings
 import TextInput
 
 folder = settings.folder
-
+used = []
 pregen = []
 
 def entryfromlist(data, amount):
@@ -70,6 +70,7 @@ def Combine(s1,s2, threshold=2, skip=0, feed=[], pr=True):
                     if matches>=threshold:
                         if pr:
                             settings.levelprint("USED: "+s1,2)
+                            used.append(s1)
                         S1W[index1]=S2W[index2]
                         SW = S1W[:index1]+S2W[index2:]
                         return " ".join(SW)
@@ -80,6 +81,8 @@ def Combine(s1,s2, threshold=2, skip=0, feed=[], pr=True):
     return None
 
 def GenerateSentence(feed=[], pr=True):
+    global used
+    used = []
     size = len(TextInput.data["Sentences"])-1
     loops = size * (int(settings.findValue("EditLoopRepetition"))/30)
     output = ""
@@ -93,15 +96,19 @@ def GenerateSentence(feed=[], pr=True):
         output = TextInput.data["Sentences"][r]
     if pr:
         settings.levelprint("USED: "+output,2)
+        used.append(output)
     current = randint(0,size)
     maxedits = int(settings.findValue("MaxEdits"))
     edits = 0
     loop = 0
+    t = 2
     while edits<maxedits and loop < loops:
         current+=1
         if current>size:
             current-=size
-        t = 2
+        if TextInput.data["Sentences"][current] in used:
+            loop += 1
+            continue
         if loop>loops*0.8 and edits < 2:
             t = 1
         temp = Combine(TextInput.data["Sentences"][current], output, t, edits, feed, pr)
@@ -110,6 +117,10 @@ def GenerateSentence(feed=[], pr=True):
             edits += 1
         loop += 1
     return output
+
+if __name__ == "__main__":
+    for i in range(5):
+        print(GenerateSentence())
 
 ##def spamfilter(message):
 ##    spamlimit=int(settings.findValue("SpamLimit"))
