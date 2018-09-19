@@ -1,5 +1,5 @@
 SETUP:
-- Install python 3.6.5 if you don't have it yet
+- Install python 3.6.5+ if you don't have it yet
 - Get your oauth token at https://twitchapps.com/tmi/ using the account the bot will use
 - Launch TwitchConnect and change settings
 
