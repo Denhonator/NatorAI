@@ -91,7 +91,7 @@ def GenerateSentence(feed=[], pr=True):
         feed = []
     if feed:
         output = findPregen(feed, True)
-    while len(output.split())<2:
+    while len(output.split())<(int(settings.findValue("lengthMod"))/10):
         r = randint(0,size)
         output = TextInput.data["Sentences"][r]
     if pr:

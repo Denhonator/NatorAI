@@ -25,6 +25,7 @@ class getInput(Thread):
                             "MessagePrefix": "Characters at the start of every message the bot sends",
                             "printLevel": "Add 0 for basic info, 1 for generated messages, 2 for its debug, 3 for learning info, 4 for its debug,"+
                             " 5 for UI debug, 6 for general debug. For example: 013 or 0123456",
+                            "lengthMod": "Affects length of generated messages. 20-60 recommended.",
                             "MaxEdits": "Max amount of messages to mix for generation. Default 5",
                             "EditLoopRepetition": "How long at max messages will be iterated through to find matches. Default 30 goes through all messages once",
                             "PregenAmount": "How many messages are pre-generated in memory at a time. Must be at least 100 to be active, recommended max 10000",
