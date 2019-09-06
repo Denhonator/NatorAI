@@ -10,16 +10,18 @@ progress = 0
 
 def load():
     global data
+    global progress
     data = {}
     try:
         with open(folder+'/sentencedata.p', 'rb') as fp:
             data = pickle.load(fp)
-        global progress
         progress = 100
         settings.levelprint("Loaded data with "+str(data["TotalSentences"])+" messages",0)
     except FileNotFoundError:
         settings.levelprint(folder+"sentencedata.p not found",0)
         data["Sentences"] = []
+        data["TotalSentences"] = 0
+        progress = 100
     save(".backup")
     try:
         with open(folder+'/pregen.p', 'rb') as fp:

@@ -56,7 +56,7 @@ def totalFollowers(refresh=True):
 try:
     ID = getUserID(nick)
 except Exception as e:
-    print(e.read())
+    print(e)
     print("Can't automatically fetch ID, using manual value")
     ID = settings.findValue("UserID")
 
