@@ -160,7 +160,8 @@ class FollowWatch(Thread):
                     gen = ""
                     if followreply.find("()")>-1:
                         gen = speak.newGenerateSentence()
-                    reply=followreply.replace("{}", api.NewFollower(False)).replace("()", gen).strip()
+                    time.sleep(1) #ensure the new username is in before fetching
+                    reply=followreply.replace("{}", api.NewFollower(True)).replace("()", gen).strip()
                     send_message(reply)
                     settings.levelprint("FOLLOW REPLY: " + reply, 1)
                 self.followers = self.followers2
@@ -270,7 +271,7 @@ while True:
             #commands
             if message[0]=='!':
                 white = username.lower() in settings.userlist("whitelist.txt")
-                if white or abs(time.clock()-timeOfCommand) > int(settings.findValue("commandCooldown")):
+                if white or abs(time.perf_counter()-timeOfCommand) > int(settings.findValue("commandCooldown")):
                     cmdparts = message.strip().split(" ", 1)
                     reply = settings.findValue(message.split()[0])
                     if white:
@@ -291,7 +292,7 @@ while True:
                     if reply!="30":
                         settings.levelprint("COMMAND RESPONSE: " + reply, 1)
                         send_message(reply)
-                        timeOfCommand = time.clock()
+                        timeOfCommand = time.perf_counter()
 
             #learning
             elif username.lower() not in settings.userlist("ignore list.txt") and settings.findValue("enableLearning")=="1":
@@ -302,26 +303,26 @@ while True:
                     wordAddingThread.start()
                 
             #talking
-            if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.clock()-timeOfAuto) > autoCooldown):
-                if (abs(time.clock()-timeOfReply)>cooldown and approved) or abs(time.clock()-timeOfReply)>longerCooldown:
+            if settings.findValue("enableTalking")=="1" and (message.lower().find(call)>-1 or abs(time.perf_counter()-timeOfAuto) > autoCooldown and autoCooldown > 0):
+                if (abs(time.perf_counter()-timeOfReply)>cooldown and approved) or abs(time.perf_counter()-timeOfReply)>longerCooldown:
                     if messageGenThread.is_alive():
                         settings.levelprint("Skipping because generating another message", 6)
                     else:
                         if message.lower().find(call)>-1:
-                            timeOfReply = time.clock()
+                            timeOfReply = time.perf_counter()
                         else:
-                            timeOfAuto = time.clock()
+                            timeOfAuto = time.perf_counter()
                         messageGenThread = GenerateMessage(message)
                         message = ""
                         messageGenThread.start()
                     
     except socket.timeout:
         autoCooldown = int(settings.findValue("autoCooldown"))
-        if settings.findValue("enableTalking")=="1" and abs(time.clock()-timeOfAuto) > autoCooldown:
+        if settings.findValue("enableTalking")=="1" and abs(time.perf_counter()-timeOfAuto) > autoCooldown and autoCooldown > 0:
             if messageGenThread.is_alive():
                 settings.levelprint("Skipping because generating another message", 6)
             else:
-                timeOfAuto = time.clock()-min(3, int(settings.findValue("autoCooldown"))-3)
+                timeOfAuto = time.perf_counter()-min(3, int(settings.findValue("autoCooldown"))-3)
                 if message:
                     messageGenThread = GenerateMessage()
                     message = ""
