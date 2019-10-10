@@ -12,7 +12,7 @@ def parseInfo(url, lookfor):
     headers={
     'Accept': 'application/vnd.twitchtv.v5+json',
     'Client-ID': clientid,
-    'Authorization': 'Bearer '+oauth,
+    'Authorization': 'OAuth '+oauth,
     'Content-Type': 'application/json'
     }
     req = urllib.request.Request(url, None, headers)
@@ -36,22 +36,25 @@ def parseInfo(url, lookfor):
     return data[lookfor]
 
 def getUserID(user):
-    url = "https://api.twitch.tv/helix/users?login="+user
-    return parseInfo(url, "data")[0]["id"]
+    url = "https://api.twitch.tv/kraken/user"
+    return parseInfo(url, "_id")
 
 def NewFollower(refresh=True):
-    users = lastData["data"]
-    if refresh:
-        url = "https://api.twitch.tv/helix/users/follows?to_id="+ID
-        users = parseInfo(url, "data")
-    url = "https://api.twitch.tv/helix/users?id="+users[0]["from_id"]
-    return parseInfo(url, "data")[0]["display_name"]
+    url = "https://api.twitch.tv/kraken/channels/"+ID+"/follows"
+    users = parseInfo(url, "follows")
+    return users[0]["user"]["display_name"]
 
 def totalFollowers(refresh=True):
     if refresh:
-        url = "https://api.twitch.tv/helix/users/follows?to_id="+ID
-        return parseInfo(url, "total")
-    return lastData["total"]
+        url = "https://api.twitch.tv/kraken/channels/"+ID+"/follows"
+        return parseInfo(url, "_total")
+    return lastData["_total"]
+
+def totalSubs(refresh=True):
+    if refresh:
+        url = "https://api.twitch.tv/kraken/channels/"+ID+"/subscriptions"
+        return parseInfo(url, "_total")
+    return lastData["_total"]
 
 try:
     ID = getUserID(nick)

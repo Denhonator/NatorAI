@@ -45,7 +45,8 @@ class getInput(Thread):
                             "FollowReply": "What the bot will say when someone follows. {} will be replaced by the nick, () with a generated message",
                             "SubReply": "What the bot will say when someone subscribes. {} will be replaced by the nick, () with a generated message",
                             "ResubReply": "Same as SubReply, but for resubs. Additionally, [] will be replaced with sub months",
-                            "SubgiftReply": "Same as SubReply, but for subgifts. However, {from} and {to} are replaced with usernames"}
+                            "SubgiftReply": "Same as SubReply, but for subgifts. However, {from} and {to} are replaced with usernames",
+                            "SubGoal": "Text to display in OBS as your sub goal. {} is replaced with current sub count."}
 
     def run(self):
         self.window = Tk()

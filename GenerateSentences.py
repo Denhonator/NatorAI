@@ -101,7 +101,7 @@ def GenerateSentence(feed=[], pr=True):
     maxedits = int(settings.findValue("MaxEdits"))
     edits = 0
     loop = 0
-    t = 2
+    t = 1
     while edits<maxedits and loop < loops:
         current+=1
         if current>size:

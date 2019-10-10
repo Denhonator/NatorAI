@@ -170,6 +170,23 @@ class FollowWatch(Thread):
                 settings.levelprint(e, 0)
             time.sleep(int(settings.findValue("FollowCheckCooldown")))
 
+class SubcountWatch(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        while True:
+            try:
+                self.subs = api.totalSubs()               
+                subfile = open(settings.folder+"/subgoal.txt","w")
+                subgoaltext = settings.findValue("SubGoal").replace("{}", str(self.subs))
+                subfile.write(subgoaltext)
+                subfile.close()
+            except Exception as e:
+                settings.levelprint("Couldn't update sub count", 0)
+                settings.levelprint(e, 0)
+            time.sleep(int(settings.findValue("FollowCheckCooldown")))
+
 getinput = UI.getInput()
 getinput.start()
 
@@ -204,6 +221,10 @@ if settings.findValue("FollowReply")!="30":
     followChecker = FollowWatch()
     followChecker.setName('Follow checker')
     followChecker.start()
+
+subChecker = SubcountWatch()
+subChecker.setName('Subcount checker')
+subChecker.start()
 
 print("All systems go")
 message = ""
