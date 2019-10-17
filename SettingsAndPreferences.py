@@ -110,7 +110,10 @@ def saveall():
     save("word ignore list.txt")
 
 def findValue(setting, value=None, replace=False):
-    key = setting.split()[0]
+    parts = setting.split()
+    if not value and not replace and len(parts)>1:
+        return "30"
+    key = parts[0]
     global settings
     if value:
         if settings.get(key, None) and not replace:

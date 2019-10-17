@@ -281,6 +281,12 @@ while True:
                 settings.levelprint("Non PRIVMSG message: "+message, 3)
             else:
                 settings.levelprint(username+": "+message, 3)
+                
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                server_address = ('localhost', 55555)
+                color = msginfo.get("color", "")
+                sent = sock.sendto(bytes(username+' '+color+' '+message, 'UTF-8'), server_address)
+                sock.close()
             
             #update settings
             cooldown = int(settings.findValue("cooldown"))
@@ -294,7 +300,7 @@ while True:
                 white = username.lower() in settings.userlist("whitelist.txt")
                 if white or abs(time.perf_counter()-timeOfCommand) > int(settings.findValue("commandCooldown")):
                     cmdparts = message.strip().split(" ", 1)
-                    reply = settings.findValue(message.split()[0])
+                    reply = settings.findValue(message)
                     if white:
                         try:
                             if cmdparts[1][0]!="!":

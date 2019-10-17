@@ -5,7 +5,7 @@ import sys
 
 oauth = settings.findValue("APIOauth").strip()
 clientid = settings.findValue("ClientID").strip()
-nick = settings.findValue("NICK").strip()
+nick = settings.findValue("JOIN").strip()
 lastData = {}
 
 def parseInfo(url, lookfor):
@@ -51,10 +51,16 @@ def totalFollowers(refresh=True):
     return lastData["_total"]
 
 def totalSubs(refresh=True):
-    if refresh:
-        url = "https://api.twitch.tv/kraken/channels/"+ID+"/subscriptions"
-        return parseInfo(url, "_total")
-    return lastData["_total"]
+    url = "https://api.twitch.tv/kraken/channels/"+ID+"/subscriptions"
+    total = parseInfo(url, "_total")
+    for sub in lastData["subscriptions"]:
+        if sub["user"]["_id"]==ID:
+            total-=1
+        elif sub["sub_plan"] == "2000":
+            total+=1
+        elif sub["sub_plan"] == "3000":
+            total+=5
+    return total
 
 try:
     ID = getUserID(nick)
@@ -64,7 +70,12 @@ except Exception as e:
     ID = settings.findValue("UserID")
 
 followers = totalFollowers()
+subs = totalSubs()
 if(followers):
     settings.levelprint("API working, "+str(followers)+" followers, most recent: "+NewFollower(False),0)
 else:
-    settings.levelprint("API not working",0)
+    settings.levelprint("API not working (followers)",0)
+if(subs):
+    settings.levelprint("API working, "+str(subs)+" sub points",0)
+else:
+    settings.levelprint("API not working (subs)",0)
