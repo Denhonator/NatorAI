@@ -285,7 +285,8 @@ while True:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 server_address = ('localhost', 55555)
                 color = msginfo.get("color", "")
-                sent = sock.sendto(bytes(username+' '+color+' '+message, 'UTF-8'), server_address)
+                emotes = msginfo.get("emotes", "")
+                sent = sock.sendto(bytes(username+' '+color+' '+emotes+' '+message, 'UTF-8'), server_address)
                 sock.close()
             
             #update settings
