@@ -103,9 +103,7 @@ def GenerateSentence(feed=[], pr=True):
     loop = 0
     t = 2
     while edits<maxedits and loop < loops:
-        current+=1
-        if current>size:
-            current-=size
+        current = randint(0,size)
         if TextInput.data["Sentences"][current] in used:
             loop += 1
             continue

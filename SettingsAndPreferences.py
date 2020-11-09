@@ -109,7 +109,7 @@ def saveall():
     save("whitelist.txt")
     save("word ignore list.txt")
 
-def findValue(setting, value=None, replace=False):
+def findValue(setting, value=None, replace=False, givelist=False):
     parts = setting.split()
     if not value and not replace and len(parts)>1:
         return "30"
@@ -125,6 +125,8 @@ def findValue(setting, value=None, replace=False):
         del settings[key]
         return "Removed command "+key
     try:
+        if givelist:
+            return settings[key]
         return settings[key][random.randint(0,len(settings[key])-1)]
     except KeyError:
         if setting[0]!="!":

@@ -13,7 +13,6 @@ def parseInfo(url, lookfor):
     'Accept': 'application/vnd.twitchtv.v5+json',
     'Client-ID': clientid,
     'Authorization': 'OAuth '+oauth,
-    'Content-Type': 'application/json'
     }
     req = urllib.request.Request(url, None, headers)
     resp = urllib.request.urlopen(req)

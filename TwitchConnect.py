@@ -23,9 +23,9 @@ def parseMessage(tags):
             pass
     return msginfo
 
-def send_message(rep):
+def send_message(rep, addprefix = True):
     MSGPR = settings.findValue("MessagePrefix")
-    if MSGPR != "30":
+    if MSGPR != "30" and addprefix:
         prefix = MSGPR+" "
     else:
         prefix = ""
@@ -54,7 +54,7 @@ class AddWords(Thread):
         self.message = message
 
     def run(self):
-        if messageGenThread.isAlive():
+        if messageGenThread.is_alive():
             messageGenThread.join()
         if self.message:
             if self.message==1:
@@ -70,8 +70,9 @@ class GenerateMessage(Thread):
         self.message = message
 
     def run(self):
-        if wordAddingThread.isAlive():
+        if wordAddingThread.is_alive():
             wordAddingThread.join()
+        feed = []
         if self.message:
             #pregen
             if self.message==1:
@@ -97,11 +98,10 @@ class GenerateMessage(Thread):
                             settings.levelprint("Pre-generating... "+str(progress)+"%",0)
                 return
             try:
-                feed = self.message.lower().split(settings.findValue("call"))[1].strip().split()
-                if feed[0]=="":
-                    feed = []
-            except:
+                feed = self.message.lower().replace(settings.findValue("call"), "").strip().split()
+            except Exception as e:
                 feed = self.message.lower().strip().split()
+                print(e)
         else:
             feed = []
         reply = ""
@@ -109,12 +109,12 @@ class GenerateMessage(Thread):
             reply = speak.findPregen(feed)
         hasFeed = False
         for w in feed:
-            if w in reply.lower().split():
+            if reply and w in reply.lower().split():
                 hasFeed = True
         if not reply or (feed and not hasFeed):
             reply = speak.GenerateSentence(feed)
         send_message(reply)
-        if hasFeed or not feed:
+        if hasFeed:
             settings.levelprint("PREGEN MESSAGE: " + reply, 1)
             try:
                 speak.pregen.remove(reply)
@@ -319,7 +319,7 @@ while True:
                             pass
                     if reply!="30":
                         settings.levelprint("COMMAND RESPONSE: " + reply, 1)
-                        send_message(reply)
+                        send_message(reply, False)
                         timeOfCommand = time.perf_counter()
 
             #learning
