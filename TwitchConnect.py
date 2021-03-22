@@ -38,6 +38,7 @@ def connectToTwitch():
     s.send(bytes("PASS " + PASS + "\r\n", "UTF-8"))
     s.send(bytes("NICK " + NICK + "\r\n", "UTF-8"))
     s.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
+    s.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
     s.send(bytes("JOIN #" + JOIN + " \r\n", "UTF-8"))
     while True:
         line = (s.recv(1024)).decode("utf-8","replace")
@@ -244,7 +245,7 @@ while True:
                 continue
             
             parts = line.split(" :", 2)
-            if "tmi.twitch.tv" in parts[1]:
+            if "tmi.twitch.tv" in parts[1] and len(parts)>2:
                 message = parts[2].strip()
             else:
                 message = ""
@@ -275,19 +276,24 @@ while True:
                     user2 = msginfo.get("msg-param-recipient-display-name", None)
                     subChecker = SubWatch(username, months, user2)
                     subChecker.setName('Sub message')
-                    subChecker.start()               
+                    subChecker.start()
 
-            if "PRIVMSG" not in parts[1] and message:
+            msgtype = "WHISPER" if "WHISPER" in parts[1] else "-"
+
+            if not "PRIVMSG" in parts[1] and not "WHISPER" in parts[1] and message:
                 settings.levelprint("Non PRIVMSG message: "+message, 3)
             else:
-                settings.levelprint(username+": "+message, 3)
+                settings.levelprint(msgtype+" "+username+": "+message, 3)
                 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 server_address = ('localhost', 55555)
                 color = msginfo.get("color", "")
                 emotes = msginfo.get("emotes", "")
-                sent = sock.sendto(bytes(username+' '+color+' '+emotes+' '+message, 'UTF-8'), server_address)
+                sent = sock.sendto(bytes(username+' '+color+' '+emotes+' '+msgtype+' '+message, 'UTF-8'), server_address)
                 sock.close()
+
+            if not "PRIVMSG" in parts[1]:
+                continue
             
             #update settings
             cooldown = int(settings.findValue("cooldown"))
